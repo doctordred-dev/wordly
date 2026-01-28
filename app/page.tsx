@@ -9,6 +9,7 @@ import TabNavigation from '@/components/TabNavigation';
 import FlashcardsTab from '@/components/FlashcardsTab';
 import QuizMode from '@/components/QuizMode';
 import StatsTab from '@/components/StatsTab';
+import { BookOpen, PenTool, TrendingUp } from 'lucide-react';
 
 interface Flashcard {
   id: string;
@@ -20,9 +21,9 @@ interface Flashcard {
 }
 
 const tabs = [
-  { id: 'flashcards', label: 'Flashcards', icon: '🃏' },
-  { id: 'quiz', label: 'Quiz', icon: '📝' },
-  { id: 'stats', label: 'Progress', icon: '📊' },
+  { id: 'flashcards', label: 'Flashcards', icon: BookOpen },
+  { id: 'quiz', label: 'Quiz', icon: PenTool },
+  { id: 'stats', label: 'Progress', icon: TrendingUp },
 ];
 
 export default function Home() {

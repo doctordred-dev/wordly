@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
-import Image from 'next/image';
+import { BookMarked, Sparkles, Target, TrendingUp, Languages } from 'lucide-react';
 
 export default function LoginPage() {
   const { signInWithGoogle } = useAuth();
@@ -22,7 +22,7 @@ export default function LoginPage() {
           <div className="text-center space-y-4">
             <div className="flex justify-center">
               <div className="w-16 h-16 md:w-20 md:h-20 gradient-cyan-purple rounded-2xl flex items-center justify-center shadow-2xl">
-                <span className="text-4xl md:text-5xl">📚</span>
+                <BookMarked className="w-10 h-10 md:w-12 md:h-12 text-white" />
               </div>
             </div>
             <div>
@@ -45,19 +45,19 @@ export default function LoginPage() {
 
           <div className="grid grid-cols-2 gap-3 md:gap-4">
             <div className="text-center p-3 md:p-4 glass-effect rounded-xl hover:bg-white/10 transition-all">
-              <Image src="/Success.png" alt="Success" width={40} height={40} className="mx-auto mb-2 w-8 h-8 md:w-10 md:h-10" />
+              <Sparkles className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-2 text-cyan-400" />
               <p className="text-xs md:text-sm font-medium text-white">Smart Learning</p>
             </div>
             <div className="text-center p-3 md:p-4 glass-effect rounded-xl hover:bg-white/10 transition-all">
-              <Image src="/Idea.png" alt="Idea" width={40} height={40} className="mx-auto mb-2 w-8 h-8 md:w-10 md:h-10" />
+              <Target className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-2 text-purple-400" />
               <p className="text-xs md:text-sm font-medium text-white">Quick Tests</p>
             </div>
             <div className="text-center p-3 md:p-4 glass-effect rounded-xl hover:bg-white/10 transition-all">
-              <Image src="/Improve.png" alt="Improve" width={40} height={40} className="mx-auto mb-2 w-8 h-8 md:w-10 md:h-10" />
+              <TrendingUp className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-2 text-pink-400" />
               <p className="text-xs md:text-sm font-medium text-white">Track Progress</p>
             </div>
             <div className="text-center p-3 md:p-4 glass-effect rounded-xl hover:bg-white/10 transition-all">
-              <Image src="/Help.png" alt="Help" width={40} height={40} className="mx-auto mb-2 w-8 h-8 md:w-10 md:h-10" />
+              <Languages className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-2 text-green-400" />
               <p className="text-xs md:text-sm font-medium text-white">Auto Translate</p>
             </div>
           </div>

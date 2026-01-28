@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/auth-context';
 import Image from 'next/image';
+import { BookMarked, LogOut } from 'lucide-react';
 
 export default function Header() {
   const { user, signOut } = useAuth();
@@ -12,7 +13,7 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-3">
             <div className="w-8 h-8 md:w-10 md:h-10 gradient-cyan-purple rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-xl md:text-2xl">📚</span>
+              <BookMarked className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </div>
             <div>
               <h1 
@@ -53,10 +54,10 @@ export default function Header() {
               </div>
               <button
                 onClick={signOut}
-                className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium text-white/80 hover:text-white glass-effect rounded-lg transition-all hover:bg-white/10"
+                className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium text-white/80 hover:text-white glass-effect rounded-lg transition-all hover:bg-white/10 flex items-center gap-1.5"
               >
+                <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline">Sign Out</span>
-                <span className="sm:hidden">Exit</span>
               </button>
             </div>
           )}

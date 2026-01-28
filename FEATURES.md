@@ -32,7 +32,7 @@ The app uses custom PNG icons from the `/public` folder:
 - Row Level Security (RLS) ensures data privacy
 - No data sharing between users
 
-## 🃏 Flashcards Tab
+##  Flashcards Tab
 
 ### Create Flashcards
 - **Bulk input** - Paste multiple words at once (one per line)

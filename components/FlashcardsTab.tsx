@@ -5,7 +5,8 @@ import { translateBulk } from '@/lib/translate';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import FlashcardGrid from './FlashcardGrid';
-import Image from 'next/image';
+import { parseWords } from '@/lib/wordParser';
+import { Sparkles, AlertCircle, Info } from 'lucide-react';
 
 interface Flashcard {
   id: string;
@@ -35,13 +36,10 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: Flashc
     setLoading(true);
 
     try {
-      const words = input
-        .split('\n')
-        .map(w => w.trim())
-        .filter(w => w.length > 0);
+      const words = parseWords(input);
 
       if (words.length === 0) {
-        setError('Please enter at least one word');
+        setError('Please enter at least one word or phrase');
         setLoading(false);
         return;
       }
@@ -89,7 +87,9 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: Flashc
       <div className="max-w-4xl mx-auto mb-8 md:mb-12">
         <div className="glass-effect rounded-2xl shadow-xl p-4 md:p-8 border border-white/20 backdrop-blur-xl">
           <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
-            <Image src="/Loading.png" alt="Add" width={32} height={32} className="w-8 h-8 md:w-10 md:h-10" />
+            <div className="w-8 h-8 md:w-10 md:h-10 gradient-cyan-purple rounded-xl flex items-center justify-center">
+              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
+            </div>
             <h2 className="text-xl md:text-2xl font-bold text-white">
               Add New Words
             </h2>
@@ -143,24 +143,27 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: Flashc
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Words (one per line)
+              <label className="block text-xs md:text-sm font-medium text-gray-200 mb-2">
+                Words or Phrases
               </label>
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Enter words, one per line:&#10;hello&#10;world&#10;computer&#10;programming"
+                placeholder="Flexible input! Try any format:&#10;&#10;hello, world, computer&#10;good morning&#10;how are you. thank you.&#10;programming language"
                 rows={6}
                 className="w-full px-3 md:px-4 py-2 md:py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white resize-none transition-all text-sm md:text-base"
               />
-              <p className="mt-2 text-xs md:text-sm text-gray-300">
-                💡 Tip: Paste multiple words at once for bulk translation
-              </p>
+              <div className="mt-2 flex items-start gap-2 text-xs md:text-sm text-gray-300">
+                <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <p>
+                  <strong>Smart input:</strong> Separate by comma, space, dot, or new line. Phrases are auto-detected!
+                </p>
+              </div>
             </div>
 
             {error && (
               <div className="glass-effect border-2 border-red-400/50 text-red-300 px-3 md:px-4 py-2 md:py-3 rounded-xl flex items-center gap-2 md:gap-3 text-sm md:text-base">
-                <span className="text-xl">⚠️</span>
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -180,7 +183,7 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: Flashc
                 </>
               ) : (
                 <>
-                  <span className="text-xl">✨</span>
+                  <Sparkles className="w-5 h-5" />
                   Create Flashcards
                 </>
               )}
