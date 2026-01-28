@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     });
     if (error) {
-      console.error('Error signing in with Google:', error);
+      console.error('Error signing in:', error);
     }
   };
 
