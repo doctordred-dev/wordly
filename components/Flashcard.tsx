@@ -15,12 +15,12 @@ export default function Flashcard({ id, word, translation, onDelete }: Flashcard
   return (
     <div className="relative group">
       <div
-        className="relative h-48 cursor-pointer"
+        className="relative h-56 cursor-pointer"
         onClick={() => setIsFlipped(!isFlipped)}
         style={{ perspective: '1000px' }}
       >
         <div
-          className={`absolute w-full h-full transition-transform duration-500 transform-style-3d ${
+          className={`absolute w-full h-full transition-all duration-500 transform-style-3d ${
             isFlipped ? 'rotate-y-180' : ''
           }`}
           style={{
@@ -29,24 +29,34 @@ export default function Flashcard({ id, word, translation, onDelete }: Flashcard
           }}
         >
           <div
-            className="absolute w-full h-full bg-white dark:bg-gray-800 rounded-xl shadow-lg flex items-center justify-center p-6 backface-hidden border-2 border-indigo-200 dark:border-indigo-700"
+            className="absolute w-full h-full bg-gradient-to-br from-white to-indigo-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-xl flex items-center justify-center p-8 backface-hidden border-2 border-indigo-100 dark:border-indigo-900 hover:shadow-2xl transition-shadow"
             style={{ backfaceVisibility: 'hidden' }}
           >
-            <p className="text-2xl font-bold text-gray-800 dark:text-white text-center break-words">
-              {word}
-            </p>
+            <div className="text-center">
+              <div className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mb-2 uppercase tracking-wide">
+                Word
+              </div>
+              <p className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-center break-words">
+                {word}
+              </p>
+            </div>
           </div>
 
           <div
-            className="absolute w-full h-full bg-indigo-600 dark:bg-indigo-700 rounded-xl shadow-lg flex items-center justify-center p-6 backface-hidden"
+            className="absolute w-full h-full bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-xl flex items-center justify-center p-8 backface-hidden hover:shadow-2xl transition-shadow"
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
             }}
           >
-            <p className="text-2xl font-bold text-white text-center break-words">
-              {translation}
-            </p>
+            <div className="text-center">
+              <div className="text-xs font-medium text-indigo-100 mb-2 uppercase tracking-wide">
+                Translation
+              </div>
+              <p className="text-3xl font-bold text-white text-center break-words">
+                {translation}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -58,7 +68,7 @@ export default function Flashcard({ id, word, translation, onDelete }: Flashcard
             onDelete(id);
           }
         }}
-        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+        className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white rounded-full w-9 h-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 shadow-lg hover:scale-110 font-bold text-lg"
         title="Delete flashcard"
       >
         ×
