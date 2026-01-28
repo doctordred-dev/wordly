@@ -1,6 +1,7 @@
 'use client';
 
-import { LucideIcon } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { LucideIcon, ChevronRight } from 'lucide-react';
 
 interface Tab {
   id: string;
@@ -15,10 +16,32 @@ interface TabNavigationProps {
 }
 
 export default function TabNavigation({ tabs, activeTab, onTabChange }: TabNavigationProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showRightFade, setShowRightFade] = useState(true);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setShowLeftFade(scrollLeft > 10);
+      setShowRightFade(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, []);
+
   return (
-    <div className="glass-effect border-b border-white/10">
+    <div className="glass-effect border-b border-white/10 relative">
       <div className="container mx-auto px-2 md:px-4">
-        <div className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide">
+        <div 
+          ref={scrollRef}
+          onScroll={checkScroll}
+          className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide"
+        >
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -38,6 +61,18 @@ export default function TabNavigation({ tabs, activeTab, onTabChange }: TabNavig
           })}
         </div>
       </div>
+      
+      {/* Left fade indicator */}
+      {showLeftFade && (
+        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-900/90 to-transparent pointer-events-none md:hidden" />
+      )}
+      
+      {/* Right fade indicator with arrow */}
+      {showRightFade && (
+        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-900/90 to-transparent pointer-events-none flex items-center justify-end pr-1 md:hidden">
+          <ChevronRight className="w-5 h-5 text-white/50 animate-pulse" />
+        </div>
+      )}
     </div>
   );
 }

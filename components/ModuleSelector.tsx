@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { FolderOpen, Plus, Edit2, Trash2, Check, X, Share2, Copy } from 'lucide-react';
@@ -170,50 +171,54 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
         <h3 className="text-sm md:text-base font-semibold text-white">Modules</h3>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
         {showAll && (
-          <button
-            onClick={() => onModuleChange(null)}
-            className={`px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-all ${
-              selectedModuleId === null
-                ? 'bg-white/20 text-white border-2 border-cyan-400'
-                : 'glass-effect text-white/70 hover:text-white border border-white/10'
-            }`}
-          >
-            All ({modules.reduce((sum, m) => sum + (m.flashcard_count || 0), 0)})
-          </button>
+          <div className="flex-shrink-0">
+            <button
+              onClick={() => onModuleChange(null)}
+              className={`px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
+                selectedModuleId === null
+                  ? 'bg-white/20 text-white border-2 border-cyan-400'
+                  : 'glass-effect text-white/70 hover:text-white border border-white/10'
+              }`}
+            >
+              All ({modules.reduce((sum, m) => sum + (m.flashcard_count || 0), 0)})
+            </button>
+          </div>
         )}
 
         {modules.map((module) => (
-          <div key={module.id} className="relative group">
+          <div key={module.id} className="flex-shrink-0">
             {editingId === module.id ? (
-              <div className="flex items-center gap-1">
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && updateModule(module.id, editName)}
-                  className="px-2 py-1 rounded-lg glass-effect border border-white/20 text-white text-xs w-24"
-                  autoFocus
-                />
-                <button
-                  onClick={() => updateModule(module.id, editName)}
-                  className="p-1 glass-effect rounded hover:bg-green-500/20"
-                >
-                  <Check className="w-3 h-3 text-green-400" />
-                </button>
-                <button
-                  onClick={() => setEditingId(null)}
-                  className="p-1 glass-effect rounded hover:bg-red-500/20"
-                >
-                  <X className="w-3 h-3 text-red-400" />
-                </button>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && updateModule(module.id, editName)}
+                    className="px-3 py-2 rounded-xl glass-effect border border-white/20 text-white text-xs w-28"
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => updateModule(module.id, editName)}
+                    className="p-2 glass-effect rounded-lg hover:bg-green-500/20"
+                  >
+                    <Check className="w-4 h-4 text-green-400" />
+                  </button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="p-2 glass-effect rounded-lg hover:bg-red-500/20"
+                  >
+                    <X className="w-4 h-4 text-red-400" />
+                  </button>
+                </div>
               </div>
             ) : (
-              <div className="flex items-center gap-1">
+              <div className="flex flex-col gap-1.5">
                 <button
                   onClick={() => onModuleChange(module.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
                     selectedModuleId === module.id
                       ? 'text-white border-2'
                       : 'glass-effect text-white/70 hover:text-white border border-white/10'
@@ -227,14 +232,14 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
                   {module.name} ({module.flashcard_count || 0})
                 </button>
                 
-                {/* Mobile: compact buttons inline */}
-                <div className="flex md:hidden gap-0.5">
+                {/* Action buttons below module */}
+                <div className="flex justify-center gap-1">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       shareModule(module.id);
                     }}
-                    className="p-1 glass-effect rounded hover:bg-green-500/20 border border-green-500/30"
+                    className="p-1.5 glass-effect rounded-lg hover:bg-green-500/20 border border-green-500/30 transition-all"
                     title="Share"
                   >
                     <Share2 className="w-3 h-3 text-green-400" />
@@ -245,7 +250,7 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
                       setEditingId(module.id);
                       setEditName(module.name);
                     }}
-                    className="p-1 glass-effect rounded hover:bg-blue-500/20 border border-blue-500/30"
+                    className="p-1.5 glass-effect rounded-lg hover:bg-blue-500/20 border border-blue-500/30 transition-all"
                     title="Edit"
                   >
                     <Edit2 className="w-3 h-3 text-blue-400" />
@@ -255,45 +260,10 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
                       e.stopPropagation();
                       deleteModule(module.id);
                     }}
-                    className="p-1 glass-effect rounded hover:bg-red-500/20 border border-red-500/30"
+                    className="p-1.5 glass-effect rounded-lg hover:bg-red-500/20 border border-red-500/30 transition-all"
                     title="Delete"
                   >
                     <Trash2 className="w-3 h-3 text-red-400" />
-                  </button>
-                </div>
-                
-                {/* Desktop: buttons on hover, absolute positioned */}
-                <div className="hidden md:flex md:absolute -top-1 -right-1 md:opacity-0 md:group-hover:opacity-100 gap-1 transition-opacity">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      shareModule(module.id);
-                    }}
-                    className="p-1.5 glass-effect rounded-lg hover:bg-green-500/20 border border-green-500/30 hover:border-green-500/50 transition-all shadow-lg"
-                    title="Share"
-                  >
-                    <Share2 className="w-3.5 h-3.5 text-green-400" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingId(module.id);
-                      setEditName(module.name);
-                    }}
-                    className="p-1.5 glass-effect rounded-lg hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-500/50 transition-all shadow-lg"
-                    title="Edit"
-                  >
-                    <Edit2 className="w-3.5 h-3.5 text-blue-400" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteModule(module.id);
-                    }}
-                    className="p-1.5 glass-effect rounded-lg hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 transition-all shadow-lg"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
                   </button>
                 </div>
               </div>
@@ -344,49 +314,111 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
             </div>
           </div>
         ) : (
-          <button
-            onClick={() => setIsCreating(true)}
-            className="px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium glass-effect text-white/70 hover:text-white border border-white/10 hover:border-cyan-400/50 transition-all flex items-center gap-1"
-          >
-            <Plus className="w-3 h-3" />
-            New Module
-          </button>
+          <div className="flex-shrink-0">
+            <button
+              onClick={() => setIsCreating(true)}
+              className="px-4 py-2 rounded-xl text-xs md:text-sm font-medium glass-effect text-white/70 hover:text-white border border-white/10 hover:border-cyan-400/50 transition-all flex items-center gap-1 whitespace-nowrap"
+            >
+              <Plus className="w-3 h-3" />
+              New Module
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Share Code Modal */}
-      {sharingId && shareCode && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setSharingId(null); setShareCode(null); }}>
-          <div className="glass-effect rounded-2xl p-6 border border-white/20 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+      {/* Share Code Modal - rendered via portal */}
+      {sharingId && shareCode && typeof document !== 'undefined' && createPortal(
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" 
+          style={{ zIndex: 9999 }}
+          onClick={() => { setSharingId(null); setShareCode(null); }}
+        >
+          <div 
+            className="bg-slate-900 rounded-2xl p-6 border border-white/20 max-w-sm w-full shadow-2xl" 
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-2xl flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-2xl flex items-center justify-center border border-green-500/30">
                 <Share2 className="w-8 h-8 text-green-400" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Share Code</h3>
               <p className="text-gray-400 text-sm mb-4">
                 Share this code with friends to let them import your module
               </p>
-              <div className="flex items-center gap-2 p-3 bg-white/10 rounded-xl mb-4">
-                <span className="flex-1 font-mono text-2xl text-cyan-400 tracking-wider">
+              <div className="flex items-center justify-between gap-2 p-4 bg-slate-800 rounded-xl mb-4 border border-white/10">
+                <span className="font-mono text-2xl text-cyan-400 tracking-widest">
                   {shareCode}
                 </span>
                 <button
                   onClick={() => copyToClipboard(shareCode)}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-all"
+                  className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
                 >
                   <Copy className="w-5 h-5 text-white" />
                 </button>
               </div>
               <button
                 onClick={() => { setSharingId(null); setShareCode(null); }}
-                className="w-full py-3 glass-effect rounded-xl text-white font-medium hover:bg-white/10 transition-all border border-white/20"
+                className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-white font-medium transition-all border border-white/20"
               >
                 Close
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
+    </div>
+  );
+}
+
+export function ShareCodeModal({ 
+  shareCode, 
+  onClose 
+}: { 
+  shareCode: string; 
+  onClose: () => void;
+}) {
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" 
+      style={{ zIndex: 9999 }}
+      onClick={onClose}
+    >
+      <div 
+        className="bg-slate-900 rounded-2xl p-6 border border-white/20 max-w-sm w-full shadow-2xl" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-2xl flex items-center justify-center border border-green-500/30">
+            <Share2 className="w-8 h-8 text-green-400" />
+          </div>
+          <h3 className="text-xl font-bold text-white mb-2">Share Code</h3>
+          <p className="text-gray-400 text-sm mb-4">
+            Share this code with friends to let them import your module
+          </p>
+          <div className="flex items-center justify-between gap-2 p-4 bg-slate-800 rounded-xl mb-4 border border-white/10">
+            <span className="font-mono text-2xl text-cyan-400 tracking-widest">
+              {shareCode}
+            </span>
+            <button
+              onClick={() => copyToClipboard(shareCode)}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
+            >
+              <Copy className="w-5 h-5 text-white" />
+            </button>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-white font-medium transition-all border border-white/20"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
