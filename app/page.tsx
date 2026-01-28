@@ -57,10 +57,19 @@ export default function Home() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+      <div className="min-h-screen relative flex items-center justify-center" style={{ background: '#1a1a2e' }}>
+        <div 
+          className="fixed inset-0 z-0 opacity-40"
+          style={{
+            backgroundImage: 'url(/Propery-bgr.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+        <div className="text-center relative z-10">
+          <div className="animate-spin w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-white">Loading...</p>
         </div>
       </div>
     );
@@ -71,17 +80,28 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <Header />
-      <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-      
-      <main className="py-8">
-        {activeTab === 'flashcards' && (
-          <FlashcardsTab flashcards={flashcards} onFlashcardsUpdate={loadFlashcards} />
-        )}
-        {activeTab === 'quiz' && <QuizMode flashcards={flashcards} />}
-        {activeTab === 'stats' && <StatsTab />}
-      </main>
+    <div className="min-h-screen relative" style={{ background: '#1a1a2e' }}>
+      <div 
+        className="fixed inset-0 z-0 opacity-40"
+        style={{
+          backgroundImage: 'url(/Propery-bgr.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+      <div className="relative z-10">
+        <Header />
+        <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        <main className="py-4 md:py-8 px-2 md:px-4">
+          {activeTab === 'flashcards' && (
+            <FlashcardsTab flashcards={flashcards} onFlashcardsUpdate={loadFlashcards} />
+          )}
+          {activeTab === 'quiz' && <QuizMode flashcards={flashcards} />}
+          {activeTab === 'stats' && <StatsTab />}
+        </main>
+      </div>
     </div>
   );
 }

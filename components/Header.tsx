@@ -7,47 +7,56 @@ export default function Header() {
   const { user, signOut } = useAuth();
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 backdrop-blur-lg bg-opacity-90">
-      <div className="container mx-auto px-4 py-4">
+    <header className="glass-effect sticky top-0 z-50 backdrop-blur-xl border-b border-white/10">
+      <div className="container mx-auto px-3 md:px-6 py-3 md:py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">📚</span>
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 gradient-cyan-purple rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-xl md:text-2xl">📚</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 
+                className="text-xl md:text-2xl font-bold"
+                style={{
+                  background: 'linear-gradient(135deg, #7fffd4 0%, #5eb3f6 25%, #8b7ff6 50%, #ff9ed8 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
                 Wordly
               </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Learn smarter, not harder</p>
+              <p className="text-[10px] md:text-xs text-gray-300 hidden sm:block">Learn smarter, not harder</p>
             </div>
           </div>
 
           {user && (
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
                 {user.user_metadata?.avatar_url && (
                   <Image
                     src={user.user_metadata.avatar_url}
                     alt="Avatar"
-                    width={40}
-                    height={40}
-                    className="rounded-full border-2 border-indigo-200 dark:border-indigo-700"
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-cyan-400/50 shadow-lg"
                   />
                 )}
-                <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <div className="hidden lg:block">
+                  <p className="text-sm font-medium text-white">
                     {user.user_metadata?.full_name || user.email}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-300">
                     {user.email}
                   </p>
                 </div>
               </div>
               <button
                 onClick={signOut}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium text-white/80 hover:text-white glass-effect rounded-lg transition-all hover:bg-white/10"
               >
-                Sign Out
+                <span className="hidden sm:inline">Sign Out</span>
+                <span className="sm:hidden">Exit</span>
               </button>
             </div>
           )}

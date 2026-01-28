@@ -14,17 +14,17 @@ interface TabNavigationProps {
 
 export default function TabNavigation({ tabs, activeTab, onTabChange }: TabNavigationProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-      <div className="container mx-auto px-4">
-        <div className="flex gap-2 overflow-x-auto">
+    <div className="glass-effect border-b border-white/10">
+      <div className="container mx-auto px-2 md:px-4">
+        <div className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex items-center gap-2 px-6 py-4 font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
+              className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-6 py-3 md:py-4 text-sm md:text-base font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'border-cyan-400 text-white'
+                  : 'border-transparent text-white/60 hover:text-white/90'
               }`}
             >
               <span className="text-xl">{tab.icon}</span>

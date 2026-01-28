@@ -85,26 +85,26 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: Flashc
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto mb-12">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-          <div className="flex items-center gap-3 mb-6">
-            <Image src="/Loading.png" alt="Add" width={40} height={40} />
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+    <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
+      <div className="max-w-4xl mx-auto mb-8 md:mb-12">
+        <div className="glass-effect rounded-2xl shadow-xl p-4 md:p-8 border border-white/20 backdrop-blur-xl">
+          <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+            <Image src="/Loading.png" alt="Add" width={32} height={32} className="w-8 h-8 md:w-10 md:h-10" />
+            <h2 className="text-xl md:text-2xl font-bold text-white">
               Add New Words
             </h2>
           </div>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs md:text-sm font-medium text-gray-200 mb-2">
                   From Language
                 </label>
                 <select
                   value={sourceLang}
                   onChange={(e) => setSourceLang(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+                  className="w-full px-3 md:px-4 py-2 md:py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white transition-all text-sm md:text-base"
                 >
                   <option value="en">🇬🇧 English</option>
                   <option value="ru">🇷🇺 Russian</option>
@@ -120,13 +120,13 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: Flashc
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs md:text-sm font-medium text-gray-200 mb-2">
                   To Language
                 </label>
                 <select
                   value={targetLang}
                   onChange={(e) => setTargetLang(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+                  className="w-full px-3 md:px-4 py-2 md:py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white transition-all text-sm md:text-base"
                 >
                   <option value="ru">🇷🇺 Russian</option>
                   <option value="en">🇬🇧 English</option>
@@ -150,16 +150,16 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: Flashc
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Enter words, one per line:&#10;hello&#10;world&#10;computer&#10;programming"
-                rows={8}
-                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-none transition-all"
+                rows={6}
+                className="w-full px-3 md:px-4 py-2 md:py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white resize-none transition-all text-sm md:text-base"
               />
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-2 text-xs md:text-sm text-gray-300">
                 💡 Tip: Paste multiple words at once for bulk translation
               </p>
             </div>
 
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl flex items-center gap-3">
+              <div className="glass-effect border-2 border-red-400/50 text-red-300 px-3 md:px-4 py-2 md:py-3 rounded-xl flex items-center gap-2 md:gap-3 text-sm md:text-base">
                 <span className="text-xl">⚠️</span>
                 <span>{error}</span>
               </div>
@@ -168,7 +168,7 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: Flashc
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
+              className="w-full gradient-cyan-purple hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3 md:py-4 px-4 md:px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 md:gap-3 shadow-lg hover:shadow-2xl text-sm md:text-base"
             >
               {loading ? (
                 <>
@@ -189,7 +189,7 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: Flashc
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-2 md:px-0">
         <FlashcardGrid flashcards={flashcards} onDelete={handleDelete} />
       </div>
     </div>

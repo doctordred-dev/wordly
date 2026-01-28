@@ -7,47 +7,64 @@ export default function LoginPage() {
   const { signInWithGoogle } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 space-y-8">
+    <div className="min-h-screen relative flex items-center justify-center p-4" style={{ background: '#1a1a2e' }}>
+      <div 
+        className="fixed inset-0 z-0 opacity-40"
+        style={{
+          backgroundImage: 'url(/Propery-bgr.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+      <div className="max-w-md w-full relative z-10">
+        <div className="glass-effect rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 md:space-y-8 backdrop-blur-2xl">
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-5xl">📚</span>
+              <div className="w-16 h-16 md:w-20 md:h-20 gradient-cyan-purple rounded-2xl flex items-center justify-center shadow-2xl">
+                <span className="text-4xl md:text-5xl">📚</span>
               </div>
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 
+                className="text-3xl md:text-4xl font-bold"
+                style={{
+                  background: 'linear-gradient(135deg, #7fffd4 0%, #5eb3f6 25%, #8b7ff6 50%, #ff9ed8 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
                 Welcome to Wordly
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-gray-300 mt-2 text-sm md:text-base">
                 Master new languages with smart flashcards
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
-              <Image src="/Success.png" alt="Success" width={48} height={48} className="mx-auto mb-2" />
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Smart Learning</p>
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="text-center p-3 md:p-4 glass-effect rounded-xl hover:bg-white/10 transition-all">
+              <Image src="/Success.png" alt="Success" width={40} height={40} className="mx-auto mb-2 w-8 h-8 md:w-10 md:h-10" />
+              <p className="text-xs md:text-sm font-medium text-white">Smart Learning</p>
             </div>
-            <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-              <Image src="/Idea.png" alt="Idea" width={48} height={48} className="mx-auto mb-2" />
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick Tests</p>
+            <div className="text-center p-3 md:p-4 glass-effect rounded-xl hover:bg-white/10 transition-all">
+              <Image src="/Idea.png" alt="Idea" width={40} height={40} className="mx-auto mb-2 w-8 h-8 md:w-10 md:h-10" />
+              <p className="text-xs md:text-sm font-medium text-white">Quick Tests</p>
             </div>
-            <div className="text-center p-4 bg-pink-50 dark:bg-pink-900/20 rounded-xl">
-              <Image src="/Improve.png" alt="Improve" width={48} height={48} className="mx-auto mb-2" />
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Track Progress</p>
+            <div className="text-center p-3 md:p-4 glass-effect rounded-xl hover:bg-white/10 transition-all">
+              <Image src="/Improve.png" alt="Improve" width={40} height={40} className="mx-auto mb-2 w-8 h-8 md:w-10 md:h-10" />
+              <p className="text-xs md:text-sm font-medium text-white">Track Progress</p>
             </div>
-            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-              <Image src="/Help.png" alt="Help" width={48} height={48} className="mx-auto mb-2" />
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Auto Translate</p>
+            <div className="text-center p-3 md:p-4 glass-effect rounded-xl hover:bg-white/10 transition-all">
+              <Image src="/Help.png" alt="Help" width={40} height={40} className="mx-auto mb-2 w-8 h-8 md:w-10 md:h-10" />
+              <p className="text-xs md:text-sm font-medium text-white">Auto Translate</p>
             </div>
           </div>
 
           <button
             onClick={signInWithGoogle}
-            className="w-full bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 hover:border-indigo-500 dark:hover:border-indigo-500 text-gray-700 dark:text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 shadow-md hover:shadow-lg"
+            className="w-full glass-effect border-2 border-white/20 hover:border-cyan-400/50 text-white font-semibold py-3 md:py-4 px-4 md:px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 md:gap-3 shadow-lg hover:shadow-2xl hover:bg-white/10 text-sm md:text-base"
           >
             <svg className="w-6 h-6" viewBox="0 0 24 24">
               <path
@@ -70,7 +87,7 @@ export default function LoginPage() {
             Continue with Google
           </button>
 
-          <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-center text-xs text-gray-400">
             By continuing, you agree to our Terms of Service and Privacy Policy
           </p>
         </div>

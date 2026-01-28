@@ -3,25 +3,69 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #1a1a2e;
+  --foreground: #ffffff;
+  --mint: #7fffd4;
+  --cyan: #5eb3f6;
+  --purple: #8b7ff6;
+  --pink: #ff9ed8;
+  --dark: #16213e;
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1a1a2e;
+    --foreground: #ffffff;
   }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  overflow-x: hidden;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  
+  .gradient-mint-cyan {
+    background: linear-gradient(135deg, var(--mint) 0%, var(--cyan) 100%);
+  }
+  
+  .gradient-cyan-purple {
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
+  }
+  
+  .gradient-purple-pink {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+  }
+  
+  .gradient-full {
+    background: linear-gradient(135deg, var(--mint) 0%, var(--cyan) 25%, var(--purple) 50%, var(--pink) 100%);
+  }
+  
+  .glass-effect {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  select option {
+    background: #1a1a2e;
+    color: white;
   }
 }
