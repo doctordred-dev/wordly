@@ -1,6 +1,7 @@
 'use client';
 
 import Flashcard from './Flashcard';
+import { useI18n } from '@/lib/i18n';
 import Image from 'next/image';
 
 interface FlashcardData {
@@ -18,13 +19,15 @@ interface FlashcardGridProps {
 }
 
 export default function FlashcardGrid({ flashcards, onDelete, showOriginalFirst = true }: FlashcardGridProps) {
+  const { t } = useI18n();
+
   if (flashcards.length === 0) {
     return (
       <div className="text-center py-12 md:py-16">
         <Image src="/Search.png" alt="No flashcards" width={100} height={100} className="mx-auto mb-4 md:mb-6 opacity-50 w-20 h-20 md:w-24 md:h-24" />
-        <h3 className="text-xl md:text-2xl font-bold text-white mb-2">No Flashcards Yet</h3>
+        <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{t('flashcards.noCards')}</h3>
         <p className="text-gray-300 text-base md:text-lg">
-          Add some words above to create your first flashcard!
+          {t('flashcards.addFirst')}
         </p>
       </div>
     );
@@ -43,7 +46,7 @@ export default function FlashcardGrid({ flashcards, onDelete, showOriginalFirst 
             backgroundClip: 'text',
           }}
         >
-          Your Flashcards ({flashcards.length})
+          {t('flashcards.yourCards')} ({flashcards.length})
         </h2>
         <div className="h-0.5 md:h-1 w-8 md:w-12 rounded" style={{ background: 'linear-gradient(135deg, #8b7ff6 0%, #ff9ed8 100%)' }}></div>
       </div>
@@ -56,6 +59,8 @@ export default function FlashcardGrid({ flashcards, onDelete, showOriginalFirst 
             translation={card.translation}
             onDelete={onDelete}
             showOriginalFirst={showOriginalFirst}
+            sourceLang={card.source_lang}
+            targetLang={card.target_lang}
           />
         ))}
       </div>

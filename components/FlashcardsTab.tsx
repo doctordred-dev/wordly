@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { translateBulk } from '@/lib/translate';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import FlashcardGrid from './FlashcardGrid';
 import { parseWords } from '@/lib/wordParser';
 import { incrementWordsLearned } from '@/lib/streak';
@@ -26,9 +27,10 @@ interface FlashcardsTabProps {
 
 export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selectedModuleId }: FlashcardsTabProps) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [input, setInput] = useState('');
   const [sourceLang, setSourceLang] = useState('en');
-  const [targetLang, setTargetLang] = useState('ru');
+  const [targetLang, setTargetLang] = useState('uk');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showOriginalFirst, setShowOriginalFirst] = useState(true);
@@ -106,7 +108,7 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
                 <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </div>
               <h2 className="text-xl md:text-2xl font-bold text-white">
-                Add New Words
+                {t('flashcards.addNew')}
               </h2>
             </div>
             {isAddWordsOpen ? (
@@ -121,7 +123,7 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div>
                 <label className="block text-xs md:text-sm font-medium text-gray-200 mb-2">
-                  From Language
+                  {t('flashcards.fromLang')}
                 </label>
                 <select
                   value={sourceLang}
@@ -129,12 +131,14 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
                   className="w-full px-3 md:px-4 py-2 md:py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white transition-all text-sm md:text-base"
                 >
                   <option value="en">🇬🇧 English</option>
+                  <option value="uk">🇺🇦 Ukrainian</option>
                   <option value="ru">🇷🇺 Russian</option>
                   <option value="es">🇪🇸 Spanish</option>
                   <option value="fr">🇫🇷 French</option>
                   <option value="de">🇩🇪 German</option>
                   <option value="it">🇮🇹 Italian</option>
                   <option value="pt">🇵🇹 Portuguese</option>
+                  <option value="pl">🇵🇱 Polish</option>
                   <option value="ja">🇯🇵 Japanese</option>
                   <option value="ko">🇰🇷 Korean</option>
                   <option value="zh">🇨🇳 Chinese</option>
@@ -143,13 +147,14 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
               
               <div>
                 <label className="block text-xs md:text-sm font-medium text-gray-200 mb-2">
-                  To Language
+                  {t('flashcards.toLang')}
                 </label>
                 <select
                   value={targetLang}
                   onChange={(e) => setTargetLang(e.target.value)}
                   className="w-full px-3 md:px-4 py-2 md:py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white transition-all text-sm md:text-base"
                 >
+                  <option value="uk">🇺🇦 Ukrainian</option>
                   <option value="ru">🇷🇺 Russian</option>
                   <option value="en">🇬🇧 English</option>
                   <option value="es">🇪🇸 Spanish</option>
@@ -157,6 +162,7 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
                   <option value="de">🇩🇪 German</option>
                   <option value="it">🇮🇹 Italian</option>
                   <option value="pt">🇵🇹 Portuguese</option>
+                  <option value="pl">🇵🇱 Polish</option>
                   <option value="ja">🇯🇵 Japanese</option>
                   <option value="ko">🇰🇷 Korean</option>
                   <option value="zh">🇨🇳 Chinese</option>
@@ -201,12 +207,12 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Translating...
+                  {t('flashcards.translating')}
                 </>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  Create Flashcards
+                  {t('flashcards.translate')}
                 </>
               )}
             </button>
@@ -218,13 +224,26 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
       <div className="max-w-7xl mx-auto px-2 md:px-0">
         {flashcards.length > 0 && (
         <div className="flex justify-end mb-4">
-          <button
-            onClick={() => setShowOriginalFirst(!showOriginalFirst)}
-            className="flex items-center gap-2 px-4 py-2 glass-effect rounded-xl border border-white/20 hover:border-cyan-400/50 transition-all text-white text-sm"
-          >
-            <span>{showOriginalFirst ? '🇬🇧 → 🇷🇺' : '🇷🇺 → 🇬🇧'}</span>
-            <span>{showOriginalFirst ? 'Original First' : 'Translation First'}</span>
-          </button>
+          <div className="flex items-center gap-3 px-4 py-2 glass-effect rounded-xl border border-white/20">
+            <span className={`text-sm ${showOriginalFirst ? 'text-white' : 'text-gray-400'}`}>
+              {t('flashcards.showOriginal')}
+            </span>
+            <button
+              onClick={() => setShowOriginalFirst(!showOriginalFirst)}
+              className={`relative w-12 h-6 rounded-full transition-all ${
+                showOriginalFirst ? 'bg-cyan-500' : 'bg-purple-500'
+              }`}
+            >
+              <div
+                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${
+                  showOriginalFirst ? 'left-1' : 'left-7'
+                }`}
+              />
+            </button>
+            <span className={`text-sm ${!showOriginalFirst ? 'text-white' : 'text-gray-400'}`}>
+              {t('flashcards.showTranslation')}
+            </span>
+          </div>
         </div>
       )}
       

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import Image from 'next/image';
 
 interface QuizResult {
@@ -14,6 +15,7 @@ interface QuizResult {
 
 export default function StatsTab() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [quizResults, setQuizResults] = useState<QuizResult[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,7 +61,7 @@ export default function StatsTab() {
               <Image src="/Success.png" alt="Success" width={48} height={48} />
               <span className="text-3xl font-bold">{totalQuizzes}</span>
             </div>
-            <p className="text-indigo-100 font-medium">Total Quizzes</p>
+            <p className="text-indigo-100 font-medium">{t('stats.quizzesCompleted')}</p>
           </div>
 
           <div className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-6 text-white shadow-xl">
@@ -67,7 +69,7 @@ export default function StatsTab() {
               <Image src="/Improve.png" alt="Improve" width={48} height={48} />
               <span className="text-3xl font-bold">{averageScore}%</span>
             </div>
-            <p className="text-pink-100 font-medium">Average Score</p>
+            <p className="text-pink-100 font-medium">{t('stats.avgScore')}</p>
           </div>
 
           <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-6 text-white shadow-xl">
@@ -77,21 +79,21 @@ export default function StatsTab() {
                 {quizResults.reduce((acc, r) => acc + r.total_questions, 0)}
               </span>
             </div>
-            <p className="text-blue-100 font-medium">Questions Answered</p>
+            <p className="text-blue-100 font-medium">{t('stats.questionsAnswered')}</p>
           </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-6">
             <Image src="/Feedback.png" alt="History" width={40} height={40} />
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Recent Quiz Results</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{t('stats.recentResults')}</h2>
           </div>
 
           {quizResults.length === 0 ? (
             <div className="text-center py-12">
               <Image src="/Search.png" alt="No data" width={80} height={80} className="mx-auto mb-4 opacity-50" />
               <p className="text-gray-500 dark:text-gray-400">
-                No quiz results yet. Take a quiz to see your progress!
+                {t('stats.noResults')}
               </p>
             </div>
           ) : (
@@ -120,7 +122,7 @@ export default function StatsTab() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-800 dark:text-white">
-                          {result.score} / {result.total_questions} correct
+                          {result.score} / {result.total_questions} {t('stats.correct')}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">{date}</p>
                       </div>

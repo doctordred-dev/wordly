@@ -1,10 +1,12 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { BookMarked, Sparkles, Target, TrendingUp, Languages } from 'lucide-react';
 
 export default function LoginPage() {
   const { signInWithGoogle } = useAuth();
+  const { t } = useI18n();
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4" style={{ background: '#1a1a2e' }}>
@@ -35,10 +37,10 @@ export default function LoginPage() {
                   backgroundClip: 'text',
                 }}
               >
-                Welcome to Wordly
+                {t('login.title')}
               </h1>
               <p className="text-gray-300 mt-2 text-sm md:text-base">
-                Master new languages with smart flashcards
+                {t('login.subtitle')}
               </p>
             </div>
           </div>
@@ -84,7 +86,7 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            {t('login.google')}
           </button>
 
           <p className="text-center text-xs text-gray-400">

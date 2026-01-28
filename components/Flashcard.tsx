@@ -1,7 +1,23 @@
 'use client';
 
 import { useState } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { Trash2, RotateCw } from 'lucide-react';
+
+const langFlags: Record<string, string> = {
+  en: '🇬🇧',
+  uk: '🇺🇦',
+  ru: '🇷🇺',
+  de: '🇩🇪',
+  fr: '🇫🇷',
+  es: '🇪🇸',
+  it: '🇮🇹',
+  pt: '🇵🇹',
+  pl: '🇵🇱',
+  ja: '🇯🇵',
+  ko: '🇰🇷',
+  zh: '🇨🇳',
+};
 
 interface FlashcardProps {
   id: string;
@@ -9,15 +25,18 @@ interface FlashcardProps {
   translation: string;
   onDelete: (id: string) => void;
   showOriginalFirst?: boolean;
+  sourceLang?: string;
+  targetLang?: string;
 }
 
-export default function Flashcard({ id, word, translation, onDelete, showOriginalFirst = true }: FlashcardProps) {
+export default function Flashcard({ id, word, translation, onDelete, showOriginalFirst = true, sourceLang = 'en', targetLang = 'uk' }: FlashcardProps) {
+  const { t } = useI18n();
   const [isFlipped, setIsFlipped] = useState(false);
 
   const frontText = showOriginalFirst ? word : translation;
   const backText = showOriginalFirst ? translation : word;
-  const frontLabel = showOriginalFirst ? 'WORD' : 'TRANSLATION';
-  const backLabel = showOriginalFirst ? 'TRANSLATION' : 'WORD';
+  const frontFlag = showOriginalFirst ? langFlags[sourceLang] || '🌐' : langFlags[targetLang] || '🌐';
+  const backFlag = showOriginalFirst ? langFlags[targetLang] || '🌐' : langFlags[sourceLang] || '🌐';
 
   return (
     <div className="perspective-1000 group">
@@ -45,11 +64,11 @@ export default function Flashcard({ id, word, translation, onDelete, showOrigina
             }}
           />
           <div className="relative z-10 text-center">
-            <div className="text-xs md:text-sm text-cyan-400/60 mb-2 font-medium">{frontLabel}</div>
+            <div className="text-lg mb-2">{frontFlag}</div>
             <p className="text-3xl md:text-4xl font-bold text-white mb-2">{frontText}</p>
             <div className="flex items-center gap-2 text-cyan-400/40 text-xs">
               <RotateCw className="w-3 h-3" />
-              <span>Click to flip</span>
+              <span>{t('flashcards.clickToFlip')}</span>
             </div>
           </div>
         </div>
@@ -71,11 +90,11 @@ export default function Flashcard({ id, word, translation, onDelete, showOrigina
             }}
           />
           <div className="relative z-10 text-center">
-            <div className="text-xs md:text-sm text-purple-400/60 mb-2 font-medium">{backLabel}</div>
+            <div className="text-lg mb-2">{backFlag}</div>
             <p className="text-3xl md:text-4xl font-bold text-white mb-2">{backText}</p>
             <div className="flex items-center gap-2 text-purple-400/40 text-xs">
               <RotateCw className="w-3 h-3" />
-              <span>Click to flip back</span>
+              <span>{t('flashcards.clickToFlip')}</span>
             </div>
           </div>
         </div>

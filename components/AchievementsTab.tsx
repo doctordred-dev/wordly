@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { getUserStreak } from '@/lib/streak';
 import { Trophy, Lock, Star, Flame, Users, Zap, BookOpen, Target, Crown } from 'lucide-react';
 
@@ -33,6 +34,7 @@ interface UserStats {
 
 export default function AchievementsTab() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
   const [stats, setStats] = useState<UserStats>({
@@ -297,7 +299,7 @@ export default function AchievementsTab() {
                 <Trophy className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">Achievements</h2>
+                <h2 className="text-2xl font-bold text-white">{t('achievements.title')}</h2>
                 <p className="text-gray-400 text-sm">
                   {unlockedCount} of {totalCount} unlocked
                 </p>
@@ -329,12 +331,12 @@ export default function AchievementsTab() {
           <div className="glass-effect rounded-xl p-4 border border-white/20 text-center">
             <BookOpen className="w-6 h-6 mx-auto mb-2 text-cyan-400" />
             <p className="text-2xl font-bold text-white">{stats.totalWords}</p>
-            <p className="text-gray-400 text-xs">Words Learned</p>
+            <p className="text-gray-400 text-xs">{t('achievements.totalWords')}</p>
           </div>
           <div className="glass-effect rounded-xl p-4 border border-white/20 text-center">
             <Target className="w-6 h-6 mx-auto mb-2 text-purple-400" />
             <p className="text-2xl font-bold text-white">{stats.totalQuizzes}</p>
-            <p className="text-gray-400 text-xs">Quizzes Done</p>
+            <p className="text-gray-400 text-xs">{t('achievements.quizzes')}</p>
           </div>
           <div className="glass-effect rounded-xl p-4 border border-white/20 text-center">
             <Crown className="w-6 h-6 mx-auto mb-2 text-yellow-400" />
@@ -344,7 +346,7 @@ export default function AchievementsTab() {
           <div className="glass-effect rounded-xl p-4 border border-white/20 text-center">
             <Flame className="w-6 h-6 mx-auto mb-2 text-orange-400" />
             <p className="text-2xl font-bold text-white">{stats.streakDays}</p>
-            <p className="text-gray-400 text-xs">Day Streak</p>
+            <p className="text-gray-400 text-xs">{t('achievements.streak')}</p>
           </div>
         </div>
 

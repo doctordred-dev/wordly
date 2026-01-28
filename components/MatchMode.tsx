@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { Play, RotateCcw, Trophy, Clock, Shuffle, CheckCircle } from 'lucide-react';
 
 interface Flashcard {
@@ -25,6 +26,7 @@ interface MatchItem {
 
 export default function MatchMode({ flashcards }: MatchModeProps) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [gameStarted, setGameStarted] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MatchItem | null>(null);
@@ -149,9 +151,9 @@ export default function MatchMode({ flashcards }: MatchModeProps) {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-md mx-auto text-center">
           <Shuffle className="w-20 h-20 md:w-24 md:h-24 mx-auto mb-6 text-white/30" />
-          <h3 className="text-xl md:text-2xl font-bold text-white mb-2">Not Enough Cards</h3>
+          <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{t('match.notEnough')}</h3>
           <p className="text-gray-300">
-            You need at least 2 flashcards to play Match mode!
+            {t('match.needAtLeast')}
           </p>
         </div>
       </div>
@@ -166,20 +168,20 @@ export default function MatchMode({ flashcards }: MatchModeProps) {
             <Shuffle className="w-12 h-12 md:w-14 md:h-14 text-white" />
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-            Match Mode
+            {t('match.title')}
           </h2>
           <p className="text-gray-300 mb-6 text-sm md:text-base">
-            Match words with their translations as fast as you can!
+            {t('match.matchFast')}
           </p>
           <p className="text-gray-400 mb-8 text-sm">
-            {Math.min(6, flashcards.length)} pairs to match
+            {t('match.pairsToMatch', { count: Math.min(6, flashcards.length) })}
           </p>
           <button
             onClick={startGame}
             className="gradient-cyan-purple hover:opacity-90 text-white font-semibold py-3 md:py-4 px-6 md:px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl inline-flex items-center gap-2"
           >
             <Play className="w-5 h-5" />
-            Start Game
+            {t('match.start')}
           </button>
         </div>
       </div>
@@ -196,19 +198,19 @@ export default function MatchMode({ flashcards }: MatchModeProps) {
             <Trophy className="w-12 h-12 md:w-14 md:h-14 text-white" />
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-            {isPerfect ? '🎉 Perfect!' : 'Great Job!'}
+            {isPerfect ? '🎉 Perfect!' : t('match.complete')}
           </h2>
           
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="glass-effect rounded-xl p-4 border border-white/20">
               <Clock className="w-6 h-6 mx-auto mb-2 text-cyan-400" />
               <p className="text-2xl font-bold text-white">{formatTime(timer)}</p>
-              <p className="text-gray-400 text-sm">Time</p>
+              <p className="text-gray-400 text-sm">{t('match.time')}</p>
             </div>
             <div className="glass-effect rounded-xl p-4 border border-white/20">
               <Shuffle className="w-6 h-6 mx-auto mb-2 text-purple-400" />
               <p className="text-2xl font-bold text-white">{moves}</p>
-              <p className="text-gray-400 text-sm">Moves</p>
+              <p className="text-gray-400 text-sm">{t('match.moves')}</p>
             </div>
           </div>
 
@@ -217,7 +219,7 @@ export default function MatchMode({ flashcards }: MatchModeProps) {
             className="gradient-cyan-purple hover:opacity-90 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl inline-flex items-center gap-2"
           >
             <RotateCcw className="w-5 h-5" />
-            Play Again
+            {t('match.playAgain')}
           </button>
         </div>
       </div>

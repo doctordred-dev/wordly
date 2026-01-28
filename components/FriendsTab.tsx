@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { Users, UserPlus, UserCheck, UserX, Search, Copy, Check, Share2, Link2 } from 'lucide-react';
 
 interface Friend {
@@ -26,6 +27,7 @@ interface SharedModule {
 
 export default function FriendsTab() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [pendingRequests, setPendingRequests] = useState<Friend[]>([]);
   const [sharedModules, setSharedModules] = useState<SharedModule[]>([]);
@@ -212,25 +214,25 @@ export default function FriendsTab() {
             <div className="w-10 h-10 gradient-cyan-purple rounded-xl flex items-center justify-center">
               <Link2 className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-xl font-bold text-white">Import Module</h2>
+            <h2 className="text-xl font-bold text-white">{t('friends.import')}</h2>
           </div>
           <p className="text-gray-400 text-sm mb-4">
-            Enter a share code to import a module from a friend
+            {t('friends.importDesc')}
           </p>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3">
             <input
               type="text"
               value={shareCode}
               onChange={(e) => setShareCode(e.target.value.toUpperCase())}
-              placeholder="Enter share code (e.g., ABC123)"
-              className="flex-1 px-4 py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white uppercase"
+              placeholder={t('friends.shareCode') + ' (e.g., ABC123)'}
+              className="w-full px-4 py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white uppercase"
             />
             <button
               onClick={importModuleByCode}
               disabled={!shareCode.trim()}
-              className="px-6 py-3 gradient-cyan-purple rounded-xl text-white font-semibold disabled:opacity-50 hover:opacity-90 transition-all"
+              className="w-full px-6 py-3 gradient-cyan-purple rounded-xl text-white font-semibold disabled:opacity-50 hover:opacity-90 transition-all"
             >
-              Import
+              {t('friends.importBtn')}
             </button>
           </div>
         </div>

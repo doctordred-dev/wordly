@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { saveModulesOffline, getModulesOffline, isOnline } from '@/lib/offlineStorage';
 import { FolderOpen, Plus, Edit2, Trash2, Check, X, Share2, Copy } from 'lucide-react';
 
@@ -19,10 +20,12 @@ interface ModuleSelectorProps {
   selectedModuleId: string | null;
   onModuleChange: (moduleId: string | null) => void;
   showAll?: boolean;
+  refreshKey?: number;
 }
 
-export default function ModuleSelector({ selectedModuleId, onModuleChange, showAll = true }: ModuleSelectorProps) {
+export default function ModuleSelector({ selectedModuleId, onModuleChange, showAll = true, refreshKey = 0 }: ModuleSelectorProps) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [modules, setModules] = useState<Module[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [newModuleName, setNewModuleName] = useState('');
@@ -47,7 +50,7 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
     if (user) {
       loadModules();
     }
-  }, [user]);
+  }, [user, refreshKey]);
 
   const loadModules = async () => {
     if (!user) return;
@@ -123,7 +126,7 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
   };
 
   const deleteModule = async (id: string) => {
-    if (!confirm('Delete this module? Flashcards will not be deleted, just unassigned.')) return;
+    if (!confirm(t('modules.delete.confirm'))) return;
 
     const { error } = await supabase.from('modules').delete().eq('id', id);
 
@@ -181,7 +184,7 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
     <div className="glass-effect rounded-xl p-3 md:p-4 border border-white/20 mb-4 md:mb-6">
       <div className="flex items-center gap-2 mb-3">
         <FolderOpen className="w-5 h-5 text-cyan-400" />
-        <h3 className="text-sm md:text-base font-semibold text-white">Modules</h3>
+        <h3 className="text-sm md:text-base font-semibold text-white">{t('modules.title')}</h3>
       </div>
 
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
@@ -195,7 +198,7 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
                   : 'glass-effect text-white/70 hover:text-white border border-white/10'
               }`}
             >
-              All ({modules.reduce((sum, m) => sum + (m.flashcard_count || 0), 0)})
+              {t('modules.all')} ({modules.reduce((sum, m) => sum + (m.flashcard_count || 0), 0)})
             </button>
           </div>
         )}
@@ -315,13 +318,13 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
                   onClick={createModule}
                   className="flex-1 px-3 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-lg transition-all border border-green-500/30 hover:border-green-500/50 text-green-400 text-sm font-medium"
                 >
-                  Create
+                  {t('modules.create')}
                 </button>
                 <button
                   onClick={() => setIsCreating(false)}
                   className="flex-1 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-all border border-red-500/30 hover:border-red-500/50 text-red-400 text-sm font-medium"
                 >
-                  Cancel
+                  {t('modules.cancel')}
                 </button>
               </div>
             </div>
@@ -333,7 +336,7 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
               className="px-4 py-2 rounded-xl text-xs md:text-sm font-medium glass-effect text-white/70 hover:text-white border border-white/10 hover:border-cyan-400/50 transition-all flex items-center gap-1 whitespace-nowrap"
             >
               <Plus className="w-3 h-3" />
-              New Module
+              {t('modules.new')}
             </button>
           </div>
         )}
@@ -354,9 +357,9 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
               <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-2xl flex items-center justify-center border border-green-500/30">
                 <Share2 className="w-8 h-8 text-green-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Share Code</h3>
+              <h3 className="text-xl font-bold text-white mb-2">{t('share.title')}</h3>
               <p className="text-gray-400 text-sm mb-4">
-                Share this code with friends to let them import your module
+                {t('share.description')}
               </p>
               <div className="flex items-center justify-between gap-2 p-4 bg-slate-800 rounded-xl mb-4 border border-white/10">
                 <span className="font-mono text-2xl text-cyan-400 tracking-widest">
@@ -373,7 +376,7 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
                 onClick={() => { setSharingId(null); setShareCode(null); }}
                 className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-white font-medium transition-all border border-white/20"
               >
-                Close
+                {t('share.close')}
               </button>
             </div>
           </div>

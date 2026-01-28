@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { saveFlashcardsOffline, getFlashcardsOffline, isOnline } from '@/lib/offlineStorage';
 import Header from '@/components/Header';
 import LoginPage from '@/components/LoginPage';
@@ -26,23 +27,25 @@ interface Flashcard {
   user_id: string | null;
 }
 
-const tabs = [
-  { id: 'flashcards', label: 'Cards', icon: BookOpen },
-  { id: 'quiz', label: 'Quiz', icon: PenTool },
-  { id: 'match', label: 'Match', icon: Shuffle },
-  { id: 'achievements', label: 'Awards', icon: Trophy },
-  { id: 'friends', label: 'Friends', icon: Users },
-  { id: 'stats', label: 'Stats', icon: TrendingUp },
-];
-
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useI18n();
+
+  const tabs = [
+    { id: 'flashcards', label: t('tabs.cards'), icon: BookOpen },
+    { id: 'quiz', label: t('tabs.quiz'), icon: PenTool },
+    { id: 'match', label: t('tabs.match'), icon: Shuffle },
+    { id: 'achievements', label: t('tabs.awards'), icon: Trophy },
+    { id: 'friends', label: t('tabs.friends'), icon: Users },
+    { id: 'stats', label: t('tabs.stats'), icon: TrendingUp },
+  ];
   const [activeTab, setActiveTab] = useState('flashcards');
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [moduleRefreshKey, setModuleRefreshKey] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -142,16 +145,22 @@ export default function Home() {
         
         <main className="py-4 md:py-8 px-2 md:px-4">
           <div className="container mx-auto max-w-7xl">
-            <ModuleSelector 
-              selectedModuleId={selectedModuleId} 
-              onModuleChange={setSelectedModuleId}
-              showAll={true}
-            />
+            {(activeTab === 'flashcards' || activeTab === 'quiz' || activeTab === 'match') && (
+              <ModuleSelector 
+                selectedModuleId={selectedModuleId} 
+                onModuleChange={setSelectedModuleId}
+                showAll={true}
+                refreshKey={moduleRefreshKey}
+              />
+            )}
             
             {activeTab === 'flashcards' && (
               <FlashcardsTab 
                 flashcards={flashcards} 
-                onFlashcardsUpdate={loadFlashcards}
+                onFlashcardsUpdate={() => {
+                  loadFlashcards();
+                  setModuleRefreshKey(k => k + 1);
+                }}
                 selectedModuleId={selectedModuleId}
               />
             )}

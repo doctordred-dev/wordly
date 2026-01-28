@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { validateAnswer } from '@/lib/answerValidator';
 import { getAllValidTranslations } from '@/lib/synonyms';
 import { incrementQuizzesCompleted } from '@/lib/streak';
@@ -25,6 +26,7 @@ type QuizType = 'text' | 'multiple';
 
 export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
   const [showResult, setShowResult] = useState(false);
@@ -150,9 +152,9 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-md mx-auto text-center">
           <Search className="w-20 h-20 md:w-24 md:h-24 mx-auto mb-6 text-white/30" />
-          <h3 className="text-xl md:text-2xl font-bold text-white mb-2">No Flashcards Yet</h3>
+          <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{t('quiz.noCards')}</h3>
           <p className="text-gray-300">
-            Create some flashcards first to start testing yourself!
+            {t('quiz.addCardsFirst')}
           </p>
         </div>
       </div>
@@ -167,13 +169,13 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
             <Play className="w-12 h-12 md:w-14 md:h-14 text-white" />
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-            Ready to Test Yourself?
+            {t('quiz.ready')}
           </h2>
           <p className="text-gray-300 mb-6 text-sm md:text-base">
-            You have {flashcards.length} flashcard{flashcards.length !== 1 ? 's' : ''} to practice
+            {t('quiz.cardsToPractice', { count: flashcards.length })}
           </p>
           
-          <p className="text-gray-400 mb-4 text-sm">Choose quiz type:</p>
+          <p className="text-gray-400 mb-4 text-sm">{t('quiz.chooseType')}</p>
           
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
@@ -181,7 +183,7 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
               className="gradient-cyan-purple hover:opacity-90 text-white font-semibold py-3 md:py-4 px-6 md:px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl inline-flex items-center justify-center gap-2"
             >
               <PenLine className="w-5 h-5" />
-              Type Answer
+              {t('quiz.typeAnswer')}
             </button>
             <button
               onClick={() => startQuiz('multiple')}
@@ -189,13 +191,13 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
               className="gradient-purple-pink hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3 md:py-4 px-6 md:px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl inline-flex items-center justify-center gap-2"
             >
               <ListChecks className="w-5 h-5" />
-              Multiple Choice
+              {t('quiz.multipleChoice')}
             </button>
           </div>
           
           {flashcards.length < 2 && (
             <p className="text-yellow-400/70 text-xs mt-4">
-              Multiple choice requires at least 2 flashcards
+              {t('quiz.minCards')}
             </p>
           )}
         </div>
@@ -220,18 +222,18 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
             <TrendingUp className="w-12 h-12 md:w-14 md:h-14 text-white" />
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-            Quiz Complete!
+            {t('quiz.complete')}
           </h2>
           <div className="flex items-center justify-center gap-2 mb-4">
             {quizType === 'text' ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
                 <PenLine className="w-3 h-3" />
-                Type Answer
+                {t('quiz.typeAnswer')}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">
                 <ListChecks className="w-3 h-3" />
-                Multiple Choice
+                {t('quiz.multipleChoice')}
               </span>
             )}
           </div>
@@ -245,7 +247,7 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
               {percentage}%
             </div>
             <p className="text-gray-300 text-sm md:text-base">
-              You got {score} out of {flashcards.length} correct
+              {t('quiz.score', { score, total: flashcards.length })}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
@@ -254,14 +256,14 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
               className="gradient-purple-pink hover:opacity-90 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl inline-flex items-center justify-center gap-2"
             >
               <RotateCcw className="w-5 h-5" />
-              Retry Same Words
+              {t('quiz.retry')}
             </button>
             <button
               onClick={restartQuiz}
               className="glass-effect border-2 border-white/20 hover:bg-white/10 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 inline-flex items-center justify-center gap-2"
             >
               <Play className="w-5 h-5" />
-              New Quiz
+              {t('quiz.newQuiz')}
             </button>
           </div>
         </div>
@@ -274,7 +276,7 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Question {currentIndex + 1} of {flashcards.length}
+            {t('quiz.question')} {currentIndex + 1} / {flashcards.length}
           </span>
           <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
             Score: {score}/{flashcards.length}
@@ -290,7 +292,7 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
 
       <div className="glass-effect rounded-2xl shadow-xl p-4 md:p-8 mb-6 border border-white/20">
         <h3 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6 text-center">
-          Translate this word:
+          {t('quiz.translateWord')}
         </h3>
         <div className="glass-effect rounded-xl p-4 md:p-6 mb-4 md:mb-6 border border-cyan-400/30">
           <p className="text-2xl md:text-3xl font-bold text-cyan-400 text-center">
@@ -310,7 +312,7 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
               }`}
             >
               <Lightbulb className="w-4 h-4" />
-              {showHint ? 'Hide Hint' : 'Show Hint'}
+              {t('quiz.hint')}
             </button>
           </div>
         )}
@@ -336,7 +338,7 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
                       checkAnswer();
                     }
                   }}
-                  placeholder="Type your answer..."
+                  placeholder={t('quiz.yourAnswer')}
                   disabled={showResult || isChecking}
                   className="w-full px-3 md:px-4 py-2 md:py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white disabled:opacity-50 text-sm md:text-base"
                 />
@@ -383,10 +385,10 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
                   {isChecking ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Checking...
+                      {t('quiz.checking')}
                     </>
                   ) : (
-                    'Check Answer'
+                    t('quiz.checkAnswer')
                   )}
                 </button>
               </>
@@ -410,7 +412,7 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
                     <p className={`font-semibold text-sm md:text-base ${
                       isCorrect ? 'text-green-400' : 'text-red-400'
                     }`}>
-                      {isCorrect ? 'Correct!' : 'Incorrect'}
+                      {isCorrect ? t('quiz.correct') : t('quiz.incorrect')}
                     </p>
                     {feedback && (
                       <p className="text-cyan-300 text-xs md:text-sm italic">
@@ -419,7 +421,7 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
                     )}
                     {!isCorrect && (
                       <p className="text-gray-300 text-xs md:text-sm">
-                        Correct answer: <span className="font-semibold">{currentCard.translation}</span>
+                        {t('quiz.correctAnswer')} <span className="font-semibold">{currentCard.translation}</span>
                       </p>
                     )}
                   </div>
@@ -430,7 +432,7 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
               onClick={nextQuestion}
               className="w-full gradient-cyan-purple hover:opacity-90 text-white font-semibold py-3 md:py-4 px-4 md:px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl text-sm md:text-base"
             >
-              {currentIndex + 1 < flashcards.length ? 'Next Question' : 'Finish Quiz'}
+              {currentIndex + 1 < flashcards.length ? t('quiz.next') : t('quiz.complete')}
             </button>
           </div>
         )}
