@@ -6,6 +6,7 @@
  * - Dot separated: "word1. word2. word3"
  * - Mixed formats
  * - Phrases (multiple words): "good morning, how are you"
+ * - Explicit phrases with colons: ":go up:, :look after:, word"
  */
 
 export function parseWords(input: string): string[] {
@@ -13,8 +14,23 @@ export function parseWords(input: string): string[] {
     return [];
   }
 
+  // Extract explicit phrases wrapped in colons first
+  const explicitPhrases: string[] = [];
+  const phrasePattern = /:([^:]+):/g;
+  let match;
+
+  while ((match = phrasePattern.exec(input)) !== null) {
+    const phrase = match[1].trim();
+    if (phrase) {
+      explicitPhrases.push(phrase);
+    }
+  }
+
+  // Remove explicit phrases from input to process the rest normally
+  let remainingInput = input.replace(phrasePattern, '').trim();
+
   // First, split by newlines to preserve multi-line input
-  const lines = input.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  const lines = remainingInput.split('\n').map(line => line.trim()).filter(line => line.length > 0);
   
   const words: string[] = [];
 
@@ -60,8 +76,11 @@ export function parseWords(input: string): string[] {
     }
   }
 
+  // Combine explicit phrases with parsed words
+  const allWords = [...explicitPhrases, ...words];
+
   // Remove duplicates and clean up
-  return Array.from(new Set(words.map(w => w.trim()).filter(w => w.length > 0)));
+  return Array.from(new Set(allWords.map(w => w.trim()).filter(w => w.length > 0)));
 }
 
 /**
@@ -73,5 +92,6 @@ export const INPUT_EXAMPLES = {
   space: "hello world computer",
   dot: "hello. world. computer",
   phrases: "good morning, how are you, thank you very much",
-  mixed: "hello, world\ncomputer\ngood morning",
+  explicitPhrases: ":go up:, :look after:, :give up:, single, word",
+  mixed: "hello, world\ncomputer\ngood morning\n:phrasal verb:",
 };

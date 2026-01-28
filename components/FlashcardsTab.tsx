@@ -94,6 +94,20 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
     }
   };
 
+  const handleEdit = async (id: string, newWord: string, newTranslation: string) => {
+    const { error } = await supabase
+      .from('flashcards')
+      .update({
+        word: newWord,
+        translation: newTranslation,
+      })
+      .eq('id', id);
+
+    if (!error) {
+      onFlashcardsUpdate();
+    }
+  };
+
   return (
     <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
       <div className="max-w-4xl mx-auto mb-8 md:mb-12">
@@ -172,19 +186,19 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
 
             <div>
               <label className="block text-xs md:text-sm font-medium text-gray-200 mb-2">
-                Words or Phrases
+                {t('common.wordsOrPhrases')}
               </label>
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Flexible input! Try any format:&#10;&#10;hello, world, computer&#10;good morning&#10;how are you. thank you.&#10;programming language"
+                placeholder="Flexible input! Try any format:&#10;&#10;hello, world, computer&#10;good morning&#10;:go up:, :look after:, word&#10;how are you. thank you."
                 rows={6}
                 className="w-full px-3 md:px-4 py-2 md:py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white resize-none transition-all text-sm md:text-base"
               />
               <div className="mt-2 flex items-start gap-2 text-xs md:text-sm text-gray-300">
                 <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <p>
-                  <strong>Smart input:</strong> Separate by comma, space, dot, or new line. Phrases are auto-detected!
+                  <strong>Smart input:</strong> Separate by comma, space, dot, or new line. Use <code className="px-1 py-0.5 bg-white/10 rounded text-cyan-400">:phrase:</code> for multi-word expressions (e.g., <code className="px-1 py-0.5 bg-white/10 rounded text-cyan-400">:go up:</code>)
                 </p>
               </div>
             </div>
@@ -247,9 +261,10 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
         </div>
       )}
       
-      <FlashcardGrid 
-        flashcards={flashcards} 
+      <FlashcardGrid
+        flashcards={flashcards}
         onDelete={handleDelete}
+        onEdit={handleEdit}
         showOriginalFirst={showOriginalFirst}
       /></div>
     </div>

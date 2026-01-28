@@ -55,6 +55,31 @@ export default function Home() {
     }
   }, [user, selectedModuleId]);
 
+  // Realtime subscription for flashcards changes
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('flashcards-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'flashcards',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          loadFlashcards();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, selectedModuleId]);
+
   const loadFlashcards = async () => {
     if (!user) return;
 
@@ -174,7 +199,14 @@ export default function Home() {
               <MatchMode flashcards={flashcards} />
             )}
             {activeTab === 'achievements' && <AchievementsTab />}
-            {activeTab === 'friends' && <FriendsTab />}
+            {activeTab === 'friends' && (
+              <FriendsTab
+                onModuleImported={() => {
+                  setModuleRefreshKey(k => k + 1);
+                  loadFlashcards();
+                }}
+              />
+            )}
             {activeTab === 'stats' && <StatsTab />}
           </div>
         </main>

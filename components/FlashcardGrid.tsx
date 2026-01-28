@@ -15,10 +15,11 @@ interface FlashcardData {
 interface FlashcardGridProps {
   flashcards: FlashcardData[];
   onDelete: (id: string) => void;
+  onEdit?: (id: string, newWord: string, newTranslation: string) => void;
   showOriginalFirst?: boolean;
 }
 
-export default function FlashcardGrid({ flashcards, onDelete, showOriginalFirst = true }: FlashcardGridProps) {
+export default function FlashcardGrid({ flashcards, onDelete, onEdit, showOriginalFirst = true }: FlashcardGridProps) {
   const { t } = useI18n();
 
   if (flashcards.length === 0) {
@@ -58,6 +59,7 @@ export default function FlashcardGrid({ flashcards, onDelete, showOriginalFirst 
             word={card.word}
             translation={card.translation}
             onDelete={onDelete}
+            onEdit={onEdit}
             showOriginalFirst={showOriginalFirst}
             sourceLang={card.source_lang}
             targetLang={card.target_lang}

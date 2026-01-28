@@ -77,6 +77,10 @@ const translations: Translations = {
     en: 'Delete this module? Flashcards will not be deleted, just unassigned.',
     uk: 'Видалити цей модуль? Картки не будуть видалені, лише відв\'язані.',
   },
+  'modules.imported': {
+    en: '(imported)',
+    uk: '(імпортовано)',
+  },
   
   // Flashcards
   'flashcards.addNew': {
@@ -249,7 +253,7 @@ const translations: Translations = {
   },
   'match.moves': {
     en: 'Moves',
-    uk: 'Ходи',
+    uk: 'Ходів',
   },
   'match.complete': {
     en: 'Great job!',
@@ -278,6 +282,18 @@ const translations: Translations = {
   'match.matched': {
     en: 'matched',
     uk: 'з\'єднано',
+  },
+  'match.words': {
+    en: 'Words',
+    uk: 'Слова',
+  },
+  'match.translations': {
+    en: 'Translations',
+    uk: 'Переклади',
+  },
+  'match.score': {
+    en: 'Score:',
+    uk: 'Рахунок:',
   },
   
   // Achievements
@@ -309,6 +325,18 @@ const translations: Translations = {
     en: 'Day Streak',
     uk: 'Днів поспіль',
   },
+  'achievements.perfectScores': {
+    en: 'Perfect Scores',
+    uk: 'Ідеальні результати',
+  },
+  'achievements.ofUnlocked': {
+    en: '{current} of {total} unlocked',
+    uk: '{current} з {total} розблоковано',
+  },
+  'achievements.totalXP': {
+    en: 'Total XP',
+    uk: 'Загальний досвід',
+  },
   
   // Friends
   'friends.title': {
@@ -335,13 +363,63 @@ const translations: Translations = {
     en: 'Importing...',
     uk: 'Імпортую...',
   },
-  'friends.sharedModules': {
-    en: 'Your Shared Modules',
-    uk: 'Ваші спільні модулі',
+  'friends.mySharedModules': {
+    en: 'My Shared Modules',
+    uk: 'Мої спільні модулі',
   },
-  'friends.noShared': {
-    en: 'No shared modules yet',
-    uk: 'Ще немає спільних модулів',
+  'friends.noSharedYet': {
+    en: 'You haven\'t shared any modules yet. Go to a module and click "Share" to create a share code.',
+    uk: 'Ви ще не поділилися жодним модулем. Перейдіть до модуля та натисніть "Поділитися", щоб створити код.',
+  },
+  'friends.code': {
+    en: 'Code:',
+    uk: 'Код:',
+  },
+  'friends.friendRequests': {
+    en: 'Friend Requests',
+    uk: 'Запити в друзі',
+  },
+  'friends.requestFrom': {
+    en: 'Friend request from user',
+    uk: 'Запит у друзі від користувача',
+  },
+  'friends.noFriends': {
+    en: 'No friends yet. Share your modules using share codes!',
+    uk: 'Ще немає друзів. Поділіться модулями за допомогою кодів!',
+  },
+  'friends.friend': {
+    en: 'Friend',
+    uk: 'Друг',
+  },
+
+  // Friend errors and messages
+  'friends.error.emailComingSoon': {
+    en: 'Friend requests by email coming soon! Use share codes for now.',
+    uk: 'Запити в друзі через email скоро з\'являться! Поки що використовуйте коди для поширення.',
+  },
+  'friends.error.invalidCode': {
+    en: 'Invalid share code. Please check and try again.',
+    uk: 'Невірний код для поширення. Будь ласка, перевірте та спробуйте знову.',
+  },
+  'friends.error.noFlashcards': {
+    en: 'This module has no flashcards.',
+    uk: 'Цей модуль не має карток.',
+  },
+  'friends.error.failedModule': {
+    en: 'Failed to create module.',
+    uk: 'Не вдалося створити модуль.',
+  },
+  'friends.error.failedImport': {
+    en: 'Failed to import flashcards.',
+    uk: 'Не вдалося імпортувати картки.',
+  },
+  'friends.success.imported': {
+    en: 'Successfully imported "{name}" with {count} flashcards!',
+    uk: 'Успішно імпортовано "{name}" з {count} картками!',
+  },
+  'friends.success.requestAccepted': {
+    en: 'Friend request accepted!',
+    uk: 'Запит у друзі прийнято!',
   },
   
   // Share Modal
@@ -470,6 +548,32 @@ const translations: Translations = {
   'common.copy': {
     en: 'Copy',
     uk: 'Копіювати',
+  },
+  'common.cancel': {
+    en: 'Cancel',
+    uk: 'Скасувати',
+  },
+  'common.word': {
+    en: 'Word',
+    uk: 'Слово',
+  },
+  'common.translation': {
+    en: 'Translation',
+    uk: 'Переклад',
+  },
+  'common.wordsOrPhrases': {
+    en: 'Words or Phrases',
+    uk: 'Слова або фрази',
+  },
+
+  // Flashcard editing
+  'flashcard.edit': {
+    en: 'Edit flashcard',
+    uk: 'Редагувати картку',
+  },
+  'flashcard.delete': {
+    en: 'Delete flashcard',
+    uk: 'Видалити картку',
   },
   
   // Login

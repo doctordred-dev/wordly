@@ -52,6 +52,31 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
     }
   }, [user, refreshKey]);
 
+  // Realtime subscription for modules changes
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('modules-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'modules',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          loadModules();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   const loadModules = async () => {
     if (!user) return;
 
@@ -387,34 +412,36 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
   );
 }
 
-export function ShareCodeModal({ 
-  shareCode, 
-  onClose 
-}: { 
-  shareCode: string; 
+export function ShareCodeModal({
+  shareCode,
+  onClose
+}: {
+  shareCode: string;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" 
+    <div
+      className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
       style={{ zIndex: 9999 }}
       onClick={onClose}
     >
-      <div 
-        className="bg-slate-900 rounded-2xl p-6 border border-white/20 max-w-sm w-full shadow-2xl" 
+      <div
+        className="bg-slate-900 rounded-2xl p-6 border border-white/20 max-w-sm w-full shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-2xl flex items-center justify-center border border-green-500/30">
             <Share2 className="w-8 h-8 text-green-400" />
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">Share Code</h3>
+          <h3 className="text-xl font-bold text-white mb-2">{t('share.title')}</h3>
           <p className="text-gray-400 text-sm mb-4">
-            Share this code with friends to let them import your module
+            {t('share.description')}
           </p>
           <div className="flex items-center justify-between gap-2 p-4 bg-slate-800 rounded-xl mb-4 border border-white/10">
             <span className="font-mono text-2xl text-cyan-400 tracking-widest">
@@ -431,7 +458,7 @@ export function ShareCodeModal({
             onClick={onClose}
             className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-white font-medium transition-all border border-white/20"
           >
-            Close
+            {t('share.close')}
           </button>
         </div>
       </div>

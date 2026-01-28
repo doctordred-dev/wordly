@@ -25,7 +25,11 @@ interface SharedModule {
   created_at: string;
 }
 
-export default function FriendsTab() {
+interface FriendsTabProps {
+  onModuleImported?: () => void;
+}
+
+export default function FriendsTab({ onModuleImported }: FriendsTabProps) {
   const { user } = useAuth();
   const { t } = useI18n();
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -42,6 +46,55 @@ export default function FriendsTab() {
     if (user) {
       loadData();
     }
+  }, [user]);
+
+  // Realtime subscriptions for friends and shared modules
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('friends-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'friends',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          loadData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'friends',
+          filter: `friend_id=eq.${user.id}`,
+        },
+        () => {
+          loadData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'shared_modules',
+          filter: `shared_by=eq.${user.id}`,
+        },
+        () => {
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const loadData = async () => {
@@ -96,7 +149,7 @@ export default function FriendsTab() {
 
     // Find user by email (we'd need a user_profiles lookup)
     // For now, we'll use a simplified approach
-    setError('Friend requests by email coming soon! Use share codes for now.');
+    setError(t('friends.error.emailComingSoon'));
   };
 
   const acceptFriendRequest = async (friendshipId: string) => {
@@ -106,7 +159,7 @@ export default function FriendsTab() {
       .eq('id', friendshipId);
 
     if (!error) {
-      setSuccess('Friend request accepted!');
+      setSuccess(t('friends.success.requestAccepted'));
       loadData();
     }
   };
@@ -138,7 +191,7 @@ export default function FriendsTab() {
       .single() as { data: any; error: any };
 
     if (findError || !sharedModule) {
-      setError('Invalid share code. Please check and try again.');
+      setError(t('friends.error.invalidCode'));
       return;
     }
 
@@ -149,7 +202,7 @@ export default function FriendsTab() {
       .eq('module_id', sharedModule.module_id) as { data: any[] | null };
 
     if (!flashcards || flashcards.length === 0) {
-      setError('This module has no flashcards.');
+      setError(t('friends.error.noFlashcards'));
       return;
     }
 
@@ -166,7 +219,7 @@ export default function FriendsTab() {
       .single() as { data: any; error: any };
 
     if (moduleError || !newModule) {
-      setError('Failed to create module.');
+      setError(t('friends.error.failedModule'));
       return;
     }
 
@@ -182,12 +235,17 @@ export default function FriendsTab() {
       .insert(newFlashcards as any);
 
     if (flashcardsError) {
-      setError('Failed to import flashcards.');
+      setError(t('friends.error.failedImport'));
       return;
     }
 
-    setSuccess(`Successfully imported "${originalModule.name}" with ${flashcards.length} flashcards!`);
+    setSuccess(t('friends.success.imported', { name: originalModule.name, count: flashcards.length }));
     setShareCode('');
+
+    // Notify parent to refresh modules list
+    if (onModuleImported) {
+      onModuleImported();
+    }
   };
 
   const copyShareCode = (code: string) => {
@@ -243,12 +301,12 @@ export default function FriendsTab() {
             <div className="w-10 h-10 gradient-purple-pink rounded-xl flex items-center justify-center">
               <Share2 className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-xl font-bold text-white">My Shared Modules</h2>
+            <h2 className="text-xl font-bold text-white">{t('friends.mySharedModules')}</h2>
           </div>
 
           {sharedModules.length === 0 ? (
             <p className="text-gray-400 text-sm">
-              You haven't shared any modules yet. Go to a module and click "Share" to create a share code.
+              {t('friends.noSharedYet')}
             </p>
           ) : (
             <div className="space-y-3">
@@ -260,7 +318,7 @@ export default function FriendsTab() {
                   <div>
                     <p className="text-white font-medium">{shared.module_name}</p>
                     <p className="text-gray-400 text-sm">
-                      Code: <span className="font-mono text-cyan-400">{shared.share_code}</span>
+                      {t('friends.code')} <span className="font-mono text-cyan-400">{shared.share_code}</span>
                     </p>
                   </div>
                   <button
@@ -286,7 +344,7 @@ export default function FriendsTab() {
               <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center">
                 <UserPlus className="w-6 h-6 text-yellow-400" />
               </div>
-              <h2 className="text-xl font-bold text-white">Friend Requests</h2>
+              <h2 className="text-xl font-bold text-white">{t('friends.friendRequests')}</h2>
               <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
                 {pendingRequests.length}
               </span>
@@ -297,7 +355,7 @@ export default function FriendsTab() {
                   key={request.id}
                   className="flex items-center justify-between p-4 glass-effect rounded-xl border border-white/10"
                 >
-                  <p className="text-white">Friend request from user</p>
+                  <p className="text-white">{t('friends.requestFrom')}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => acceptFriendRequest(request.id)}
@@ -324,7 +382,7 @@ export default function FriendsTab() {
             <div className="w-10 h-10 gradient-cyan-purple rounded-xl flex items-center justify-center">
               <Users className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-xl font-bold text-white">Friends</h2>
+            <h2 className="text-xl font-bold text-white">{t('friends.title')}</h2>
             <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded-full">
               {friends.length}
             </span>
@@ -332,7 +390,7 @@ export default function FriendsTab() {
 
           {friends.length === 0 ? (
             <p className="text-gray-400 text-sm">
-              No friends yet. Share your modules using share codes!
+              {t('friends.noFriends')}
             </p>
           ) : (
             <div className="space-y-3">
@@ -347,7 +405,7 @@ export default function FriendsTab() {
                         {(friend.friend_name || 'U')[0].toUpperCase()}
                       </span>
                     </div>
-                    <p className="text-white">{friend.friend_name || 'Friend'}</p>
+                    <p className="text-white">{friend.friend_name || t('friends.friend')}</p>
                   </div>
                 </div>
               ))}
