@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { validateAnswer } from '@/lib/answerValidator';
 import { Play, RotateCcw, CheckCircle, XCircle, TrendingUp, Search } from 'lucide-react';
 
 interface Flashcard {
@@ -15,9 +16,10 @@ interface Flashcard {
 
 interface QuizModeProps {
   flashcards: Flashcard[];
+  selectedModuleId: string | null;
 }
 
-export default function QuizMode({ flashcards }: QuizModeProps) {
+export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps) {
   const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
@@ -26,14 +28,16 @@ export default function QuizMode({ flashcards }: QuizModeProps) {
   const [score, setScore] = useState(0);
   const [quizComplete, setQuizComplete] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
+  const [feedback, setFeedback] = useState<string | undefined>();
 
   const currentCard = flashcards[currentIndex];
 
   const checkAnswer = () => {
-    const correct = userAnswer.trim().toLowerCase() === currentCard.translation.toLowerCase();
-    setIsCorrect(correct);
+    const validation = validateAnswer(userAnswer, currentCard.translation);
+    setIsCorrect(validation.isCorrect);
+    setFeedback(validation.feedback);
     setShowResult(true);
-    if (correct) {
+    if (validation.isCorrect) {
       setScore(score + 1);
     }
   };
@@ -237,6 +241,11 @@ export default function QuizMode({ flashcards }: QuizModeProps) {
                     }`}>
                       {isCorrect ? 'Correct!' : 'Incorrect'}
                     </p>
+                    {feedback && (
+                      <p className="text-cyan-300 text-xs md:text-sm italic">
+                        {feedback}
+                      </p>
+                    )}
                     {!isCorrect && (
                       <p className="text-gray-300 text-xs md:text-sm">
                         Correct answer: <span className="font-semibold">{currentCard.translation}</span>

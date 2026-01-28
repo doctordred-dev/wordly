@@ -6,59 +6,91 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       flashcards: {
         Row: {
+          created_at: string | null
           id: string
-          word: string
-          translation: string
+          module_id: string | null
           source_lang: string
           target_lang: string
+          translation: string
           user_id: string | null
-          created_at: string
+          word: string
         }
         Insert: {
+          created_at?: string | null
           id?: string
-          word: string
-          translation: string
-          source_lang: string
-          target_lang: string
-          user_id?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          word?: string
-          translation?: string
+          module_id?: string | null
           source_lang?: string
           target_lang?: string
+          translation: string
+          user_id?: string | null
+          word: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          module_id?: string | null
+          source_lang?: string
+          target_lang?: string
+          translation?: string
+          user_id?: string | null
+          word?: string
+        }
+      }
+      modules: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
           user_id?: string
-          created_at?: string
         }
       }
       quiz_results: {
         Row: {
+          completed_at: string | null
           id: string
-          user_id: string
           score: number
           total_questions: number
-          completed_at: string
+          user_id: string
         }
         Insert: {
+          completed_at?: string | null
           id?: string
-          user_id: string
           score: number
           total_questions: number
-          completed_at?: string
+          user_id: string
         }
         Update: {
+          completed_at?: string | null
           id?: string
-          user_id?: string
           score?: number
           total_questions?: number
-          completed_at?: string
+          user_id?: string
         }
       }
     }

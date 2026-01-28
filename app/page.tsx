@@ -9,6 +9,7 @@ import TabNavigation from '@/components/TabNavigation';
 import FlashcardsTab from '@/components/FlashcardsTab';
 import QuizMode from '@/components/QuizMode';
 import StatsTab from '@/components/StatsTab';
+import ModuleSelector from '@/components/ModuleSelector';
 import { BookOpen, PenTool, TrendingUp } from 'lucide-react';
 
 interface Flashcard {
@@ -31,6 +32,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('flashcards');
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -38,17 +40,23 @@ export default function Home() {
     } else {
       setFlashcards([]);
     }
-  }, [user]);
+  }, [user, selectedModuleId]);
 
   const loadFlashcards = async () => {
     if (!user) return;
 
     setLoading(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from('flashcards')
       .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .eq('user_id', user.id);
+
+    // Filter by module if selected
+    if (selectedModuleId) {
+      query = query.eq('module_id', selectedModuleId);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error loading flashcards:', error);
@@ -98,11 +106,28 @@ export default function Home() {
         <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
         
         <main className="py-4 md:py-8 px-2 md:px-4">
-          {activeTab === 'flashcards' && (
-            <FlashcardsTab flashcards={flashcards} onFlashcardsUpdate={loadFlashcards} />
-          )}
-          {activeTab === 'quiz' && <QuizMode flashcards={flashcards} />}
-          {activeTab === 'stats' && <StatsTab />}
+          <div className="container mx-auto max-w-7xl">
+            <ModuleSelector 
+              selectedModuleId={selectedModuleId} 
+              onModuleChange={setSelectedModuleId}
+              showAll={true}
+            />
+            
+            {activeTab === 'flashcards' && (
+              <FlashcardsTab 
+                flashcards={flashcards} 
+                onFlashcardsUpdate={loadFlashcards}
+                selectedModuleId={selectedModuleId}
+              />
+            )}
+            {activeTab === 'quiz' && (
+              <QuizMode 
+                flashcards={flashcards}
+                selectedModuleId={selectedModuleId}
+              />
+            )}
+            {activeTab === 'stats' && <StatsTab />}
+          </div>
         </main>
       </div>
     </div>

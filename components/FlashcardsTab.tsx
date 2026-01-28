@@ -20,9 +20,10 @@ interface Flashcard {
 interface FlashcardsTabProps {
   flashcards: Flashcard[];
   onFlashcardsUpdate: () => void;
+  selectedModuleId: string | null;
 }
 
-export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: FlashcardsTabProps) {
+export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selectedModuleId }: FlashcardsTabProps) {
   const { user } = useAuth();
   const [input, setInput] = useState('');
   const [sourceLang, setSourceLang] = useState('en');
@@ -52,6 +53,7 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: Flashc
         source_lang: sourceLang,
         target_lang: targetLang,
         user_id: user?.id || null,
+        module_id: selectedModuleId,
       }));
 
       const { error: insertError } = await supabase
