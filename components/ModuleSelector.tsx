@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { saveModulesOffline, getModulesOffline, isOnline } from '@/lib/offlineStorage';
 import { FolderOpen, Plus, Edit2, Trash2, Check, X, Share2, Copy } from 'lucide-react';
 
 interface Module {
@@ -51,6 +52,13 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
   const loadModules = async () => {
     if (!user) return;
 
+    // Check if offline
+    if (!isOnline()) {
+      const offlineModules = getModulesOffline();
+      setModules(offlineModules.filter(m => m.user_id === user.id));
+      return;
+    }
+
     // Load modules with flashcard count
     const { data: modulesData, error: modulesError } = await supabase
       .from('modules')
@@ -60,6 +68,9 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
 
     if (modulesError) {
       console.error('Error loading modules:', modulesError);
+      // Fallback to offline data
+      const offlineModules = getModulesOffline();
+      setModules(offlineModules.filter(m => m.user_id === user.id));
       return;
     }
 
@@ -71,11 +82,13 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
           .select('*', { count: 'exact', head: true })
           .eq('module_id', module.id);
         
-        return { ...module, flashcard_count: count || 0 } as Module;
+        return { ...module, flashcard_count: count || 0, user_id: user.id } as Module & { user_id: string };
       })
     );
 
     setModules(modulesWithCounts);
+    // Save to offline storage
+    saveModulesOffline(modulesWithCounts.map(m => ({ ...m, user_id: user.id })), user.id);
   };
 
   const createModule = async () => {

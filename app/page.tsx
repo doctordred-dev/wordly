@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { saveFlashcardsOffline, getFlashcardsOffline, isOnline } from '@/lib/offlineStorage';
 import Header from '@/components/Header';
 import LoginPage from '@/components/LoginPage';
 import TabNavigation from '@/components/TabNavigation';
@@ -55,6 +56,20 @@ export default function Home() {
     if (!user) return;
 
     setLoading(true);
+    
+    // Check if online
+    if (!isOnline()) {
+      // Load from offline storage
+      const offlineData = getFlashcardsOffline();
+      let filtered = offlineData.filter(f => f.user_id === user.id);
+      if (selectedModuleId) {
+        filtered = filtered.filter(f => f.module_id === selectedModuleId);
+      }
+      setFlashcards(filtered);
+      setLoading(false);
+      return;
+    }
+
     let query = supabase
       .from('flashcards')
       .select('*')
@@ -69,8 +84,19 @@ export default function Home() {
 
     if (error) {
       console.error('Error loading flashcards:', error);
+      // Fallback to offline data on error
+      const offlineData = getFlashcardsOffline();
+      let filtered = offlineData.filter(f => f.user_id === user.id);
+      if (selectedModuleId) {
+        filtered = filtered.filter(f => f.module_id === selectedModuleId);
+      }
+      setFlashcards(filtered);
     } else if (data) {
       setFlashcards(data);
+      // Save to offline storage (save all user's flashcards)
+      if (!selectedModuleId) {
+        saveFlashcardsOffline(data, user.id);
+      }
     }
     setLoading(false);
   };
