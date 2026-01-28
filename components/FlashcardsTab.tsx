@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import FlashcardGrid from './FlashcardGrid';
 import { parseWords } from '@/lib/wordParser';
-import { Sparkles, AlertCircle, Info } from 'lucide-react';
+import { Sparkles, AlertCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Flashcard {
   id: string;
@@ -31,6 +31,7 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showOriginalFirst, setShowOriginalFirst] = useState(true);
+  const [isAddWordsOpen, setIsAddWordsOpen] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,17 +89,29 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
   return (
     <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
       <div className="max-w-4xl mx-auto mb-8 md:mb-12">
-        <div className="glass-effect rounded-2xl shadow-xl p-4 md:p-8 border border-white/20 backdrop-blur-xl">
-          <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
-            <div className="w-8 h-8 md:w-10 md:h-10 gradient-cyan-purple rounded-xl flex items-center justify-center">
-              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
+        <div className="glass-effect rounded-2xl shadow-xl border border-white/20 backdrop-blur-xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setIsAddWordsOpen(!isAddWordsOpen)}
+            className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 gradient-cyan-purple rounded-xl flex items-center justify-center">
+                <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <h2 className="text-xl md:text-2xl font-bold text-white">
+                Add New Words
+              </h2>
             </div>
-            <h2 className="text-xl md:text-2xl font-bold text-white">
-              Add New Words
-            </h2>
-          </div>
+            {isAddWordsOpen ? (
+              <ChevronUp className="w-6 h-6 text-white/70" />
+            ) : (
+              <ChevronDown className="w-6 h-6 text-white/70" />
+            )}
+          </button>
           
-          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+          <div className={`transition-all duration-300 ease-in-out ${isAddWordsOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 p-4 md:p-6 pt-0">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div>
                 <label className="block text-xs md:text-sm font-medium text-gray-200 mb-2">
@@ -191,7 +204,8 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
                 </>
               )}
             </button>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
 

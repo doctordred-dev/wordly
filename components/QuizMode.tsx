@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { validateAnswer } from '@/lib/answerValidator';
 import { getAllValidTranslations } from '@/lib/synonyms';
-import { Play, RotateCcw, CheckCircle, XCircle, TrendingUp, Search } from 'lucide-react';
+import { Play, RotateCcw, CheckCircle, XCircle, TrendingUp, Search, Lightbulb, Loader2, PenLine, ListChecks } from 'lucide-react';
 
 interface Flashcard {
   id: string;
@@ -20,6 +20,8 @@ interface QuizModeProps {
   selectedModuleId: string | null;
 }
 
+type QuizType = 'text' | 'multiple';
+
 export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps) {
   const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -30,26 +32,62 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
   const [quizComplete, setQuizComplete] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
   const [feedback, setFeedback] = useState<string | undefined>();
+  const [isChecking, setIsChecking] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [quizType, setQuizType] = useState<QuizType>('text');
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
   const currentCard = flashcards[currentIndex];
 
+  // Generate multiple choice options (1 correct + 3 wrong from other flashcards)
+  const multipleChoiceOptions = useMemo(() => {
+    if (!currentCard || flashcards.length < 2) return [];
+    
+    // Get wrong answers from other flashcards
+    const otherCards = flashcards.filter(f => f.id !== currentCard.id);
+    const shuffledOthers = [...otherCards].sort(() => Math.random() - 0.5);
+    const wrongAnswers = shuffledOthers.slice(0, Math.min(3, shuffledOthers.length)).map(f => f.translation);
+    
+    // Add correct answer and shuffle
+    const options = [currentCard.translation, ...wrongAnswers];
+    return options.sort(() => Math.random() - 0.5);
+  }, [currentCard, currentIndex, flashcards]);
+
   const checkAnswer = async () => {
-    // Get all valid translations (original + synonyms)
-    const validTranslations = await getAllValidTranslations(
-      currentCard.word,
-      currentCard.translation,
-      currentCard.source_lang,
-      currentCard.target_lang
-    );
+    setIsChecking(true);
     
-    // Validate user answer against all valid translations
-    const validation = validateAnswer(userAnswer, validTranslations);
-    
-    setIsCorrect(validation.isCorrect);
-    setFeedback(validation.feedback);
-    setShowResult(true);
-    if (validation.isCorrect) {
-      setScore(score + 1);
+    try {
+      if (quizType === 'multiple') {
+        // Multiple choice - direct comparison
+        const isAnswerCorrect = selectedOption !== null && 
+          multipleChoiceOptions[selectedOption]?.toLowerCase().trim() === currentCard.translation.toLowerCase().trim();
+        
+        setIsCorrect(isAnswerCorrect);
+        setFeedback(isAnswerCorrect ? 'Great job!' : undefined);
+        setShowResult(true);
+        if (isAnswerCorrect) {
+          setScore(score + 1);
+        }
+      } else {
+        // Text input - use synonym validation
+        const validTranslations = await getAllValidTranslations(
+          currentCard.word,
+          currentCard.translation,
+          currentCard.source_lang,
+          currentCard.target_lang
+        );
+        
+        const validation = validateAnswer(userAnswer, validTranslations);
+        
+        setIsCorrect(validation.isCorrect);
+        setFeedback(validation.feedback);
+        setShowResult(true);
+        if (validation.isCorrect) {
+          setScore(score + 1);
+        }
+      }
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -58,6 +96,8 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
       setCurrentIndex(currentIndex + 1);
       setUserAnswer('');
       setShowResult(false);
+      setShowHint(false);
+      setSelectedOption(null);
     } else {
       setQuizComplete(true);
       saveQuizResult();
@@ -81,6 +121,8 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
     setShowResult(false);
     setQuizComplete(false);
     setQuizStarted(false);
+    setShowHint(false);
+    setSelectedOption(null);
   };
 
   const retryQuiz = () => {
@@ -89,7 +131,14 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
     setUserAnswer('');
     setShowResult(false);
     setQuizComplete(false);
+    setShowHint(false);
+    setSelectedOption(null);
     // Keep quizStarted as true to immediately start
+  };
+
+  const startQuiz = (type: QuizType) => {
+    setQuizType(type);
+    setQuizStarted(true);
   };
 
   if (flashcards.length === 0) {
@@ -116,16 +165,35 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
             Ready to Test Yourself?
           </h2>
-          <p className="text-gray-300 mb-8 text-sm md:text-base">
+          <p className="text-gray-300 mb-6 text-sm md:text-base">
             You have {flashcards.length} flashcard{flashcards.length !== 1 ? 's' : ''} to practice
           </p>
-          <button
-            onClick={() => setQuizStarted(true)}
-            className="gradient-cyan-purple hover:opacity-90 text-white font-semibold py-3 md:py-4 px-6 md:px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl inline-flex items-center gap-2"
-          >
-            <Play className="w-5 h-5" />
-            Start Quiz
-          </button>
+          
+          <p className="text-gray-400 mb-4 text-sm">Choose quiz type:</p>
+          
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => startQuiz('text')}
+              className="gradient-cyan-purple hover:opacity-90 text-white font-semibold py-3 md:py-4 px-6 md:px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl inline-flex items-center justify-center gap-2"
+            >
+              <PenLine className="w-5 h-5" />
+              Type Answer
+            </button>
+            <button
+              onClick={() => startQuiz('multiple')}
+              disabled={flashcards.length < 2}
+              className="gradient-purple-pink hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3 md:py-4 px-6 md:px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl inline-flex items-center justify-center gap-2"
+            >
+              <ListChecks className="w-5 h-5" />
+              Multiple Choice
+            </button>
+          </div>
+          
+          {flashcards.length < 2 && (
+            <p className="text-yellow-400/70 text-xs mt-4">
+              Multiple choice requires at least 2 flashcards
+            </p>
+          )}
         </div>
       </div>
     );
@@ -147,9 +215,22 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
           }}>
             <TrendingUp className="w-12 h-12 md:w-14 md:h-14 text-white" />
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
             Quiz Complete!
           </h2>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            {quizType === 'text' ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                <PenLine className="w-3 h-3" />
+                Type Answer
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                <ListChecks className="w-3 h-3" />
+                Multiple Choice
+              </span>
+            )}
+          </div>
           <div className="mb-8">
             <div className="text-4xl md:text-5xl font-bold mb-2" style={{
               background: 'linear-gradient(135deg, #7fffd4 0%, #5eb3f6 25%, #8b7ff6 50%, #ff9ed8 100%)',
@@ -212,29 +293,100 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
             {currentCard.word}
           </p>
         </div>
+        
+        {/* Hint button */}
+        {!showResult && (
+          <div className="mb-4 flex justify-center">
+            <button
+              onClick={() => setShowHint(!showHint)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all text-sm ${
+                showHint 
+                  ? 'bg-yellow-500/20 border-2 border-yellow-400/50 text-yellow-400' 
+                  : 'glass-effect border border-white/20 text-white/70 hover:text-yellow-400 hover:border-yellow-400/30'
+              }`}
+            >
+              <Lightbulb className="w-4 h-4" />
+              {showHint ? 'Hide Hint' : 'Show Hint'}
+            </button>
+          </div>
+        )}
+        
+        {/* Hint display */}
+        {showHint && !showResult && (
+          <div className="mb-4 p-3 glass-effect rounded-xl border border-yellow-400/30 text-center">
+            <p className="text-yellow-400 text-sm">💡 Translation: <span className="font-semibold">{currentCard.translation}</span></p>
+          </div>
+        )}
 
         {!showResult ? (
           <div className="space-y-4">
-            <input
-              type="text"
-              value={userAnswer}
-              onChange={(e) => setUserAnswer(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && !showResult && userAnswer.trim()) {
-                  checkAnswer();
-                }
-              }}
-              placeholder="Type your answer..."
-              disabled={showResult}
-              className="w-full px-3 md:px-4 py-2 md:py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white disabled:opacity-50 text-sm md:text-base"
-            />
-            <button
-              onClick={showResult ? nextQuestion : () => checkAnswer()}
-              disabled={!showResult && !userAnswer.trim()}
-              className="w-full gradient-cyan-purple hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3 md:py-4 px-4 md:px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl disabled:cursor-not-allowed text-sm md:text-base"
-            >
-              {showResult ? 'Next Question' : 'Check Answer'}
-            </button>
+            {quizType === 'text' ? (
+              /* Text input mode */
+              <>
+                <input
+                  type="text"
+                  value={userAnswer}
+                  onChange={(e) => setUserAnswer(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !showResult && userAnswer.trim() && !isChecking) {
+                      checkAnswer();
+                    }
+                  }}
+                  placeholder="Type your answer..."
+                  disabled={showResult || isChecking}
+                  className="w-full px-3 md:px-4 py-2 md:py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white disabled:opacity-50 text-sm md:text-base"
+                />
+                <button
+                  onClick={() => checkAnswer()}
+                  disabled={!userAnswer.trim() || isChecking}
+                  className="w-full gradient-cyan-purple hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3 md:py-4 px-4 md:px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl disabled:cursor-not-allowed text-sm md:text-base flex items-center justify-center gap-2"
+                >
+                  {isChecking ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    'Check Answer'
+                  )}
+                </button>
+              </>
+            ) : (
+              /* Multiple choice mode */
+              <>
+                <div className="space-y-3">
+                  {multipleChoiceOptions.map((option, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedOption(index)}
+                      disabled={isChecking}
+                      className={`w-full px-4 py-3 rounded-xl text-left transition-all text-sm md:text-base ${
+                        selectedOption === index
+                          ? 'bg-cyan-500/20 border-2 border-cyan-400 text-white'
+                          : 'glass-effect border-2 border-white/20 text-white/80 hover:border-white/40 hover:text-white'
+                      }`}
+                    >
+                      <span className="font-semibold mr-2">{String.fromCharCode(65 + index)}.</span>
+                      {option.charAt(0).toUpperCase() + option.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => checkAnswer()}
+                  disabled={selectedOption === null || isChecking}
+                  className="w-full gradient-cyan-purple hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3 md:py-4 px-4 md:px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl disabled:cursor-not-allowed text-sm md:text-base flex items-center justify-center gap-2"
+                >
+                  {isChecking ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    'Check Answer'
+                  )}
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-6">

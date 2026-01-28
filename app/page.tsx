@@ -8,10 +8,13 @@ import LoginPage from '@/components/LoginPage';
 import TabNavigation from '@/components/TabNavigation';
 import FlashcardsTab from '@/components/FlashcardsTab';
 import QuizMode from '@/components/QuizMode';
+import MatchMode from '@/components/MatchMode';
 import StatsTab from '@/components/StatsTab';
+import AchievementsTab from '@/components/AchievementsTab';
+import FriendsTab from '@/components/FriendsTab';
 import ModuleSelector from '@/components/ModuleSelector';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { BookOpen, PenTool, TrendingUp } from 'lucide-react';
+import { BookOpen, PenTool, TrendingUp, Shuffle, Trophy, Users } from 'lucide-react';
 
 interface Flashcard {
   id: string;
@@ -23,9 +26,12 @@ interface Flashcard {
 }
 
 const tabs = [
-  { id: 'flashcards', label: 'Flashcards', icon: BookOpen },
+  { id: 'flashcards', label: 'Cards', icon: BookOpen },
   { id: 'quiz', label: 'Quiz', icon: PenTool },
-  { id: 'stats', label: 'Progress', icon: TrendingUp },
+  { id: 'match', label: 'Match', icon: Shuffle },
+  { id: 'achievements', label: 'Awards', icon: Trophy },
+  { id: 'friends', label: 'Friends', icon: Users },
+  { id: 'stats', label: 'Stats', icon: TrendingUp },
 ];
 
 export default function Home() {
@@ -129,6 +135,11 @@ export default function Home() {
                 selectedModuleId={selectedModuleId}
               />
             )}
+            {activeTab === 'match' && (
+              <MatchMode flashcards={flashcards} />
+            )}
+            {activeTab === 'achievements' && <AchievementsTab />}
+            {activeTab === 'friends' && <FriendsTab />}
             {activeTab === 'stats' && <StatsTab />}
           </div>
         </main>
