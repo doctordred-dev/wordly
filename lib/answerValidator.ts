@@ -54,13 +54,49 @@ function calculateSimilarity(str1: string, str2: string): number {
 }
 
 /**
+ * Check if two words are synonyms by translating back and forth
+ */
+async function areSynonyms(word1: string, word2: string, targetLang: string = 'ru', sourceLang: string = 'en'): Promise<boolean> {
+  try {
+    // Translate word1 back to source language
+    const response1 = await fetch(
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${targetLang}&tl=${sourceLang}&dt=t&q=${encodeURIComponent(word1)}`
+    );
+    
+    if (!response1.ok) return false;
+    const data1 = await response1.json();
+    const backTranslation1 = data1?.[0]?.[0]?.[0]?.toLowerCase().trim();
+
+    // Translate word2 back to source language
+    const response2 = await fetch(
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${targetLang}&tl=${sourceLang}&dt=t&q=${encodeURIComponent(word2)}`
+    );
+    
+    if (!response2.ok) return false;
+    const data2 = await response2.json();
+    const backTranslation2 = data2?.[0]?.[0]?.[0]?.toLowerCase().trim();
+
+    // If both translate to the same source word, they are synonyms
+    return backTranslation1 === backTranslation2;
+  } catch (error) {
+    console.error('Synonym check error:', error);
+    return false;
+  }
+}
+
+/**
  * Check if answer is valid (exact match, synonym, or very similar)
  */
-export function validateAnswer(userAnswer: string, correctAnswer: string): {
+export async function validateAnswer(
+  userAnswer: string, 
+  correctAnswer: string,
+  sourceLang: string = 'en',
+  targetLang: string = 'ru'
+): Promise<{
   isCorrect: boolean;
   similarity: number;
   feedback?: string;
-} {
+}> {
   const normalizedUser = normalizeText(userAnswer);
   const normalizedCorrect = normalizeText(correctAnswer);
 
@@ -96,18 +132,11 @@ export function validateAnswer(userAnswer: string, correctAnswer: string): {
     }
   }
 
-  // Check for common synonyms/alternatives (can be extended)
-  const synonymPairs: Record<string, string[]> = {
-    'привет': ['здравствуйте', 'здравствуй', 'приветствую', 'салют'],
-    'пока': ['до свидания', 'прощай', 'прощайте'],
-    'спасибо': ['благодарю', 'благодарность'],
-    'да': ['ага', 'угу', 'конечно'],
-    'нет': ['не', 'нету'],
-  };
-
-  for (const [key, synonyms] of Object.entries(synonymPairs)) {
-    if ((normalizedCorrect === key && synonyms.includes(normalizedUser)) ||
-        (normalizedUser === key && synonyms.includes(normalizedCorrect))) {
+  // Check for synonyms using translation API
+  // Only check if similarity is reasonably high (>= 60%) to avoid unnecessary API calls
+  if (similarity >= 60) {
+    const synonymCheck = await areSynonyms(normalizedUser, normalizedCorrect, targetLang, sourceLang);
+    if (synonymCheck) {
       return { 
         isCorrect: true, 
         similarity: 90,

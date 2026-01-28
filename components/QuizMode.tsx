@@ -32,8 +32,13 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
 
   const currentCard = flashcards[currentIndex];
 
-  const checkAnswer = () => {
-    const validation = validateAnswer(userAnswer, currentCard.translation);
+  const checkAnswer = async () => {
+    const validation = await validateAnswer(
+      userAnswer, 
+      currentCard.translation,
+      currentCard.source_lang,
+      currentCard.target_lang
+    );
     setIsCorrect(validation.isCorrect);
     setFeedback(validation.feedback);
     setShowResult(true);
@@ -208,13 +213,17 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
               type="text"
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && !showResult && checkAnswer()}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !showResult && userAnswer.trim()) {
+                  checkAnswer();
+                }
+              }}
               placeholder="Type your answer..."
               disabled={showResult}
               className="w-full px-3 md:px-4 py-2 md:py-3 glass-effect border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 text-white disabled:opacity-50 text-sm md:text-base"
             />
             <button
-              onClick={showResult ? nextQuestion : checkAnswer}
+              onClick={showResult ? nextQuestion : () => checkAnswer()}
               disabled={!showResult && !userAnswer.trim()}
               className="w-full gradient-cyan-purple hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3 md:py-4 px-4 md:px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl disabled:cursor-not-allowed text-sm md:text-base"
             >
