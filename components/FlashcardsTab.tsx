@@ -53,12 +53,12 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate }: Flashc
         translation,
         source_lang: sourceLang,
         target_lang: targetLang,
-        user_id: user?.id,
+        user_id: user?.id || null,
       }));
 
       const { error: insertError } = await supabase
         .from('flashcards')
-        .insert(flashcardsToInsert);
+        .insert(flashcardsToInsert as any);
 
       if (insertError) {
         throw insertError;

@@ -56,7 +56,7 @@ export default function QuizMode({ flashcards }: QuizModeProps) {
       user_id: user.id,
       score,
       total_questions: flashcards.length,
-    });
+    } as any);
   };
 
   const restartQuiz = () => {
