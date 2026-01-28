@@ -54,111 +54,78 @@ function calculateSimilarity(str1: string, str2: string): number {
 }
 
 /**
- * Check if two words are synonyms by translating back and forth
+ * Check if answer is valid against array of correct answers
  */
-async function areSynonyms(word1: string, word2: string, targetLang: string = 'ru', sourceLang: string = 'en'): Promise<boolean> {
-  try {
-    // Translate word1 back to source language
-    const response1 = await fetch(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${targetLang}&tl=${sourceLang}&dt=t&q=${encodeURIComponent(word1)}`
-    );
-    
-    if (!response1.ok) return false;
-    const data1 = await response1.json();
-    const backTranslation1 = data1?.[0]?.[0]?.[0]?.toLowerCase().trim();
-
-    // Translate word2 back to source language
-    const response2 = await fetch(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${targetLang}&tl=${sourceLang}&dt=t&q=${encodeURIComponent(word2)}`
-    );
-    
-    if (!response2.ok) return false;
-    const data2 = await response2.json();
-    const backTranslation2 = data2?.[0]?.[0]?.[0]?.toLowerCase().trim();
-
-    // If both translate to the same source word, they are synonyms
-    return backTranslation1 === backTranslation2;
-  } catch (error) {
-    console.error('Synonym check error:', error);
-    return false;
-  }
-}
-
-/**
- * Check if answer is valid (exact match, synonym, or very similar)
- */
-export async function validateAnswer(
+export function validateAnswer(
   userAnswer: string, 
-  correctAnswer: string,
-  sourceLang: string = 'en',
-  targetLang: string = 'ru'
-): Promise<{
+  validAnswers: string[]
+): {
   isCorrect: boolean;
   similarity: number;
   feedback?: string;
-}> {
+} {
   const normalizedUser = normalizeText(userAnswer);
-  const normalizedCorrect = normalizeText(correctAnswer);
 
-  // Exact match
-  if (normalizedUser === normalizedCorrect) {
-    return { isCorrect: true, similarity: 100 };
+  // Check exact match with any valid answer
+  for (const correctAnswer of validAnswers) {
+    const normalizedCorrect = normalizeText(correctAnswer);
+    
+    if (normalizedUser === normalizedCorrect) {
+      return { isCorrect: true, similarity: 100 };
+    }
   }
 
-  // Calculate similarity
-  const similarity = calculateSimilarity(normalizedUser, normalizedCorrect);
+  // Find best similarity match
+  let bestSimilarity = 0;
+  let bestMatch = '';
+  
+  for (const correctAnswer of validAnswers) {
+    const normalizedCorrect = normalizeText(correctAnswer);
+    const similarity = calculateSimilarity(normalizedUser, normalizedCorrect);
+    
+    if (similarity > bestSimilarity) {
+      bestSimilarity = similarity;
+      bestMatch = normalizedCorrect;
+    }
+  }
 
   // Accept if similarity is >= 85% (allows for minor typos and variations)
-  if (similarity >= 85) {
+  if (bestSimilarity >= 85) {
     return { 
       isCorrect: true, 
-      similarity,
-      feedback: similarity < 100 ? 'Close enough! Minor spelling difference.' : undefined
+      similarity: bestSimilarity,
+      feedback: bestSimilarity < 100 ? 'Close enough! Minor spelling difference.' : undefined
     };
   }
 
-  // Check if user answer contains the correct answer or vice versa
-  // (handles cases like "привет" vs "привет!")
-  if (normalizedUser.includes(normalizedCorrect) || normalizedCorrect.includes(normalizedUser)) {
-    const lengthRatio = Math.min(normalizedUser.length, normalizedCorrect.length) / 
-                       Math.max(normalizedUser.length, normalizedCorrect.length);
+  // Check if user answer contains any correct answer or vice versa
+  for (const correctAnswer of validAnswers) {
+    const normalizedCorrect = normalizeText(correctAnswer);
     
-    if (lengthRatio >= 0.7) {
-      return { 
-        isCorrect: true, 
-        similarity,
-        feedback: 'Correct! (Alternative form accepted)'
-      };
+    if (normalizedUser.includes(normalizedCorrect) || normalizedCorrect.includes(normalizedUser)) {
+      const lengthRatio = Math.min(normalizedUser.length, normalizedCorrect.length) / 
+                         Math.max(normalizedUser.length, normalizedCorrect.length);
+      
+      if (lengthRatio >= 0.7) {
+        return { 
+          isCorrect: true, 
+          similarity: bestSimilarity,
+          feedback: 'Correct! (Alternative form accepted)'
+        };
+      }
     }
   }
 
-  // Check for synonyms using translation API
-  // Only check if similarity is reasonably high (>= 60%) to avoid unnecessary API calls
-  if (similarity >= 60) {
-    const synonymCheck = await areSynonyms(normalizedUser, normalizedCorrect, targetLang, sourceLang);
-    if (synonymCheck) {
-      return { 
-        isCorrect: true, 
-        similarity: 90,
-        feedback: 'Correct! (Synonym accepted)'
-      };
-    }
+  // Check if answer matches any synonym (similarity >= 80%)
+  if (bestSimilarity >= 80) {
+    return { 
+      isCorrect: true, 
+      similarity: bestSimilarity,
+      feedback: 'Correct! (Synonym accepted)'
+    };
   }
 
   // Not correct
-  return { isCorrect: false, similarity };
+  return { isCorrect: false, similarity: bestSimilarity };
 }
 
-/**
- * Get multiple acceptable answers by translating back
- * This helps find alternative translations
- */
-export async function getAlternativeTranslations(
-  word: string,
-  sourceLang: string,
-  targetLang: string
-): Promise<string[]> {
-  // This could call translation API to get alternatives
-  // For now, return just the word
-  return [word];
-}

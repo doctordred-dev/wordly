@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { validateAnswer } from '@/lib/answerValidator';
+import { getAllValidTranslations } from '@/lib/synonyms';
 import { Play, RotateCcw, CheckCircle, XCircle, TrendingUp, Search } from 'lucide-react';
 
 interface Flashcard {
@@ -33,12 +34,17 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
   const currentCard = flashcards[currentIndex];
 
   const checkAnswer = async () => {
-    const validation = await validateAnswer(
-      userAnswer, 
+    // Get all valid translations (original + synonyms)
+    const validTranslations = await getAllValidTranslations(
+      currentCard.word,
       currentCard.translation,
       currentCard.source_lang,
       currentCard.target_lang
     );
+    
+    // Validate user answer against all valid translations
+    const validation = validateAnswer(userAnswer, validTranslations);
+    
     setIsCorrect(validation.isCorrect);
     setFeedback(validation.feedback);
     setShowResult(true);
