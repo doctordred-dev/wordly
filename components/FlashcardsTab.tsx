@@ -95,8 +95,8 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
   };
 
   const handleEdit = async (id: string, newWord: string, newTranslation: string) => {
-    const { error } = await supabase
-      .from('flashcards')
+    const { error } = await (supabase
+      .from('flashcards') as any)
       .update({
         word: newWord,
         translation: newTranslation,
