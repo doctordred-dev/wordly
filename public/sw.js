@@ -33,6 +33,11 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
   
+  // Skip chrome-extension and other non-http(s) schemes
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+  
   // Skip API requests (always go to network)
   if (event.request.url.includes('/api/') || 
       event.request.url.includes('supabase.co')) {
