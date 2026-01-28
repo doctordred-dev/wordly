@@ -35,6 +35,8 @@ export default function Home() {
   useEffect(() => {
     if (user) {
       loadFlashcards();
+    } else {
+      setFlashcards([]);
     }
   }, [user]);
 
