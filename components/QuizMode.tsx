@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { validateAnswer } from '@/lib/answerValidator';
 import { getAllValidTranslations } from '@/lib/synonyms';
+import { incrementQuizzesCompleted } from '@/lib/streak';
 import { Play, RotateCcw, CheckCircle, XCircle, TrendingUp, Search, Lightbulb, Loader2, PenLine, ListChecks } from 'lucide-react';
 
 interface Flashcard {
@@ -112,6 +113,9 @@ export default function QuizMode({ flashcards, selectedModuleId }: QuizModeProps
       score,
       total_questions: flashcards.length,
     } as any);
+
+    // Update streak and quiz count
+    await incrementQuizzesCompleted(user.id);
   };
 
   const restartQuiz = () => {

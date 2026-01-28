@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import FlashcardGrid from './FlashcardGrid';
 import { parseWords } from '@/lib/wordParser';
+import { incrementWordsLearned } from '@/lib/streak';
 import { Sparkles, AlertCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Flashcard {
@@ -64,6 +65,11 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
 
       if (insertError) {
         throw insertError;
+      }
+
+      // Update streak and word count
+      if (user) {
+        await incrementWordsLearned(user.id, flashcardsToInsert.length);
       }
 
       setInput('');

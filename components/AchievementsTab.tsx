@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { getUserStreak } from '@/lib/streak';
 import { Trophy, Lock, Star, Flame, Users, Zap, BookOpen, Target, Crown } from 'lucide-react';
 
 interface Achievement {
@@ -82,15 +83,31 @@ export default function AchievementsTab() {
         (q: { score: number; total_questions: number }) => q.score === q.total_questions
       ).length || 0;
 
+      // Get streak from user_profiles
+      const streakDays = await getUserStreak(user.id);
+
+      // Get friends count
+      const { count: friendsCount } = await supabase
+        .from('friends')
+        .select('*', { count: 'exact', head: true })
+        .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
+        .eq('status', 'accepted');
+
+      // Get shared modules count
+      const { count: sharedCount } = await supabase
+        .from('shared_modules')
+        .select('*', { count: 'exact', head: true })
+        .eq('shared_by', user.id);
+
       setAchievements(achievementsData || []);
       setUserAchievements(userAchievementsData || []);
       setStats({
         totalWords: wordsCount || 0,
         totalQuizzes: quizResults?.length || 0,
         perfectQuizzes,
-        streakDays: 0, // TODO: Calculate from user_profiles
-        friendsCount: 0,
-        sharedModules: 0,
+        streakDays,
+        friendsCount: friendsCount || 0,
+        sharedModules: sharedCount || 0,
       });
 
       // Check and unlock new achievements
@@ -101,9 +118,9 @@ export default function AchievementsTab() {
           totalWords: wordsCount || 0,
           totalQuizzes: quizResults?.length || 0,
           perfectQuizzes,
-          streakDays: 0,
-          friendsCount: 0,
-          sharedModules: 0,
+          streakDays,
+          friendsCount: friendsCount || 0,
+          sharedModules: sharedCount || 0,
         }
       );
     } finally {
