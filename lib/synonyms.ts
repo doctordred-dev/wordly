@@ -8,26 +8,47 @@ import { translateText } from './translate';
 const synonymCache = new Map<string, string[]>();
 
 /**
- * Get synonyms for an English word using free API
+ * Get synonyms for an English word using Thesaurus API (API Ninjas)
  */
 async function fetchEnglishSynonyms(word: string): Promise<string[]> {
   try {
-    // Using datamuse API (free, no key required)
+    const apiKey = process.env.NEXT_PUBLIC_NINJAS_API_KEY;
+    
+    if (!apiKey) {
+      console.warn('API Ninjas key not found (NEXT_PUBLIC_NINJAS_API_KEY), skipping synonym fetch');
+      return [];
+    }
+
+    console.log('Fetching synonyms for:', word);
+
+    // Using API Ninjas Thesaurus API
     const response = await fetch(
-      `https://api.datamuse.com/words?rel_syn=${encodeURIComponent(word)}&max=10`
+      `https://api.api-ninjas.com/v1/thesaurus?word=${encodeURIComponent(word)}`,
+      {
+        headers: {
+          'X-Api-Key': apiKey,
+        },
+      }
     );
     
-    if (!response.ok) return [];
+    if (!response.ok) {
+      console.error('API Ninjas error:', response.status, response.statusText);
+      return [];
+    }
     
     const data = await response.json();
+    console.log('Synonyms received:', data);
     
-    // Extract words from response
-    const synonyms = data
-      .map((item: any) => item.word)
+    // API Ninjas returns { word: "happy", synonyms: ["joyful", "cheerful", ...] }
+    const synonyms = data.synonyms || [];
+    
+    // Filter and limit synonyms
+    const filtered = synonyms
       .filter((w: string) => w && w.toLowerCase() !== word.toLowerCase())
-      .slice(0, 8); // Limit to 8 synonyms
+      .slice(0, 10); // Limit to 10 synonyms
     
-    return synonyms;
+    console.log('Filtered synonyms:', filtered);
+    return filtered;
   } catch (error) {
     console.error('Error fetching synonyms:', error);
     return [];

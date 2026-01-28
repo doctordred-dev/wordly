@@ -3,6 +3,8 @@
  * Accepts synonyms, alternative translations, and similar answers
  */
 
+import * as fuzz from 'fuzzball';
+
 /**
  * Normalize text for comparison
  */
@@ -15,42 +17,12 @@ function normalizeText(text: string): string {
 }
 
 /**
- * Calculate Levenshtein distance (edit distance) between two strings
- */
-function levenshteinDistance(str1: string, str2: string): number {
-  const m = str1.length;
-  const n = str2.length;
-  const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
-
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (str1[i - 1] === str2[j - 1]) {
-        dp[i][j] = dp[i - 1][j - 1];
-      } else {
-        dp[i][j] = Math.min(
-          dp[i - 1][j] + 1,    // deletion
-          dp[i][j - 1] + 1,    // insertion
-          dp[i - 1][j - 1] + 1 // substitution
-        );
-      }
-    }
-  }
-
-  return dp[m][n];
-}
-
-/**
- * Calculate similarity percentage between two strings
+ * Calculate similarity percentage between two strings using fuzzy matching
+ * Uses fuzzball library for better accuracy
  */
 function calculateSimilarity(str1: string, str2: string): number {
-  const maxLen = Math.max(str1.length, str2.length);
-  if (maxLen === 0) return 100;
-  
-  const distance = levenshteinDistance(str1, str2);
-  return ((maxLen - distance) / maxLen) * 100;
+  // fuzz.ratio returns 0-100
+  return fuzz.ratio(str1, str2);
 }
 
 /**
@@ -89,8 +61,8 @@ export function validateAnswer(
     }
   }
 
-  // Accept if similarity is >= 85% (allows for minor typos and variations)
-  if (bestSimilarity >= 85) {
+  // Accept if similarity is >= 90% (very close match with fuzzy matching)
+  if (bestSimilarity >= 90) {
     return { 
       isCorrect: true, 
       similarity: bestSimilarity,
@@ -116,8 +88,8 @@ export function validateAnswer(
     }
   }
 
-  // Check if answer matches any synonym (similarity >= 80%)
-  if (bestSimilarity >= 80) {
+  // Accept if similarity is >= 85% (good match, likely a synonym or typo)
+  if (bestSimilarity >= 85) {
     return { 
       isCorrect: true, 
       similarity: bestSimilarity,
