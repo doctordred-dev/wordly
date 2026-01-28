@@ -14,9 +14,10 @@ interface FlashcardData {
 interface FlashcardGridProps {
   flashcards: FlashcardData[];
   onDelete: (id: string) => void;
+  showOriginalFirst?: boolean;
 }
 
-export default function FlashcardGrid({ flashcards, onDelete }: FlashcardGridProps) {
+export default function FlashcardGrid({ flashcards, onDelete, showOriginalFirst = true }: FlashcardGridProps) {
   if (flashcards.length === 0) {
     return (
       <div className="text-center py-12 md:py-16">
@@ -54,6 +55,7 @@ export default function FlashcardGrid({ flashcards, onDelete }: FlashcardGridPro
             word={card.word}
             translation={card.translation}
             onDelete={onDelete}
+            showOriginalFirst={showOriginalFirst}
           />
         ))}
       </div>

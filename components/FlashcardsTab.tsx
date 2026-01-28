@@ -30,6 +30,7 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
   const [targetLang, setTargetLang] = useState('ru');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showOriginalFirst, setShowOriginalFirst] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,8 +196,23 @@ export default function FlashcardsTab({ flashcards, onFlashcardsUpdate, selected
       </div>
 
       <div className="max-w-7xl mx-auto px-2 md:px-0">
-        <FlashcardGrid flashcards={flashcards} onDelete={handleDelete} />
-      </div>
+        {flashcards.length > 0 && (
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setShowOriginalFirst(!showOriginalFirst)}
+            className="flex items-center gap-2 px-4 py-2 glass-effect rounded-xl border border-white/20 hover:border-cyan-400/50 transition-all text-white text-sm"
+          >
+            <span>{showOriginalFirst ? '🇬🇧 → 🇷🇺' : '🇷🇺 → 🇬🇧'}</span>
+            <span>{showOriginalFirst ? 'Original First' : 'Translation First'}</span>
+          </button>
+        </div>
+      )}
+      
+      <FlashcardGrid 
+        flashcards={flashcards} 
+        onDelete={handleDelete}
+        showOriginalFirst={showOriginalFirst}
+      /></div>
     </div>
   );
 }

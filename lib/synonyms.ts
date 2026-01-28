@@ -1,10 +1,12 @@
 /**
  * Synonym fetching and caching for better answer validation
+ * Uses Redis for persistent caching across sessions
  */
 
 import { translateText } from './translate';
+import { getCache, setCache, isRedisAvailable } from './redis';
 
-// Cache for synonyms to avoid repeated API calls
+// In-memory cache for synonyms (fallback if Redis unavailable)
 const synonymCache = new Map<string, string[]>();
 
 /**
@@ -64,9 +66,22 @@ export async function getAllValidTranslations(
   sourceLang: string = 'en',
   targetLang: string = 'ru'
 ): Promise<string[]> {
-  // Check cache first
-  const cacheKey = `${sourceWord}_${sourceLang}_${targetLang}`;
+  console.log('🔍 getAllValidTranslations called:', { sourceWord, originalTranslation, sourceLang, targetLang });
+  
+  const cacheKey = `synonyms:${sourceWord}_${sourceLang}_${targetLang}`;
+  
+  // Try Redis cache first
+  if (isRedisAvailable()) {
+    const cached = await getCache<string[]>(cacheKey);
+    if (cached) {
+      console.log('✅ Using Redis cached synonyms for:', sourceWord);
+      return cached;
+    }
+  }
+  
+  // Fallback to in-memory cache
   if (synonymCache.has(cacheKey)) {
+    console.log('✅ Using in-memory cached synonyms for:', sourceWord);
     return synonymCache.get(cacheKey)!;
   }
 
@@ -74,42 +89,76 @@ export async function getAllValidTranslations(
   
   // Add original translation
   validTranslations.add(originalTranslation.toLowerCase().trim());
+  console.log('📝 Original translation added:', originalTranslation);
 
   // Only fetch synonyms for English source words
   if (sourceLang === 'en') {
+    console.log('🌍 Source language is English, fetching synonyms...');
     try {
       // Get English synonyms
       const synonyms = await fetchEnglishSynonyms(sourceWord);
+      console.log('📚 Synonyms fetched:', synonyms);
       
       if (synonyms.length > 0) {
-        // Translate each synonym
-        const translations = await Promise.all(
+        console.log('🔄 Translating', synonyms.length, 'synonyms...');
+        
+        // Translate each synonym and check relevance
+        const translationResults = await Promise.all(
           synonyms.map(async (synonym) => {
             try {
               const translation = await translateText(synonym, sourceLang, targetLang);
-              return translation.toLowerCase().trim();
-            } catch {
+              console.log(`  ✓ ${synonym} → ${translation}`);
+              return { synonym, translation: translation.toLowerCase().trim() };
+            } catch (error) {
+              console.log(`  ✗ ${synonym} → failed`);
               return null;
             }
           })
         );
         
-        // Add all successful translations
-        translations.forEach(t => {
-          if (t && t.length > 0) {
-            validTranslations.add(t);
+        // Filter out failed translations
+        const successfulTranslations = translationResults.filter(r => r !== null) as Array<{synonym: string, translation: string}>;
+        
+        // Import fuzzball for similarity check
+        const fuzz = await import('fuzzball');
+        const originalLower = originalTranslation.toLowerCase().trim();
+        
+        console.log('🎯 Filtering by relevance to original:', originalLower);
+        
+        // Only keep translations that are somewhat similar to original (>= 50% similarity)
+        // or are common alternative translations
+        successfulTranslations.forEach(({ synonym, translation }) => {
+          const similarity = fuzz.ratio(translation, originalLower);
+          
+          if (similarity >= 50 || translation.includes(originalLower) || originalLower.includes(translation)) {
+            console.log(`  ✅ ${synonym} → ${translation} (similarity: ${similarity}%)`);
+            validTranslations.add(translation);
+          } else {
+            console.log(`  ❌ ${synonym} → ${translation} (similarity: ${similarity}% - too different, skipped)`);
           }
         });
+      } else {
+        console.log('⚠️ No synonyms found for:', sourceWord);
       }
     } catch (error) {
-      console.error('Error getting synonyms:', error);
+      console.error('❌ Error getting synonyms:', error);
     }
+  } else {
+    console.log('⏭️ Skipping synonyms (not English):', sourceLang);
   }
 
   const result = Array.from(validTranslations);
   
-  // Cache the result
+  console.log('✅ Final valid translations:', result);
+  
+  // Cache the result in memory
   synonymCache.set(cacheKey, result);
+  
+  // Cache in Redis (24 hour TTL)
+  if (isRedisAvailable()) {
+    await setCache(cacheKey, result, 86400);
+    console.log('💾 Saved to Redis cache:', cacheKey);
+  }
   
   return result;
 }

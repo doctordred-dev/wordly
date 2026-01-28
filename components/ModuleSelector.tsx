@@ -166,7 +166,7 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
                 </button>
               </div>
             ) : (
-              <>
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => onModuleChange(module.id)}
                   className={`px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-all ${
@@ -182,62 +182,102 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
                   <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: module.color }} />
                   {module.name} ({module.flashcard_count || 0})
                 </button>
-                <div className="absolute -top-1 -right-1 hidden group-hover:flex gap-0.5">
+                
+                {/* Mobile: compact buttons inline */}
+                <div className="flex md:hidden gap-0.5">
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setEditingId(module.id);
                       setEditName(module.name);
                     }}
-                    className="p-1 glass-effect rounded-full hover:bg-blue-500/20"
+                    className="p-1 glass-effect rounded hover:bg-blue-500/20 border border-blue-500/30"
+                    title="Edit"
                   >
                     <Edit2 className="w-3 h-3 text-blue-400" />
                   </button>
                   <button
-                    onClick={() => deleteModule(module.id)}
-                    className="p-1 glass-effect rounded-full hover:bg-red-500/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteModule(module.id);
+                    }}
+                    className="p-1 glass-effect rounded hover:bg-red-500/20 border border-red-500/30"
+                    title="Delete"
                   >
                     <Trash2 className="w-3 h-3 text-red-400" />
                   </button>
                 </div>
-              </>
+                
+                {/* Desktop: buttons on hover, absolute positioned */}
+                <div className="hidden md:flex md:absolute -top-1 -right-1 md:opacity-0 md:group-hover:opacity-100 gap-1 transition-opacity">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingId(module.id);
+                      setEditName(module.name);
+                    }}
+                    className="p-1.5 glass-effect rounded-lg hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-500/50 transition-all shadow-lg"
+                    title="Edit"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-blue-400" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteModule(module.id);
+                    }}
+                    className="p-1.5 glass-effect rounded-lg hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 transition-all shadow-lg"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         ))}
 
         {isCreating ? (
-          <div className="flex items-center gap-1">
-            <input
-              type="text"
-              value={newModuleName}
-              onChange={(e) => setNewModuleName(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && createModule()}
-              placeholder="Module name"
-              className="px-2 py-1 rounded-lg glass-effect border border-white/20 text-white text-xs w-28"
-              autoFocus
-            />
-            <select
-              value={newModuleColor}
-              onChange={(e) => setNewModuleColor(e.target.value)}
-              className="p-1 glass-effect rounded border border-white/20 text-white text-xs"
-            >
-              {colors.map((color) => (
-                <option key={color} value={color} style={{ backgroundColor: color }}>
-                  ●
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={createModule}
-              className="p-1 glass-effect rounded hover:bg-green-500/20"
-            >
-              <Check className="w-3 h-3 text-green-400" />
-            </button>
-            <button
-              onClick={() => setIsCreating(false)}
-              className="p-1 glass-effect rounded hover:bg-red-500/20"
-            >
-              <X className="w-3 h-3 text-red-400" />
-            </button>
+          <div className="glass-effect rounded-xl p-3 border border-white/20">
+            <div className="flex flex-col gap-3">
+              <input
+                type="text"
+                value={newModuleName}
+                onChange={(e) => setNewModuleName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && createModule()}
+                placeholder="Module name"
+                className="px-3 py-2 rounded-lg glass-effect border border-white/20 text-white text-sm"
+                autoFocus
+              />
+              <div className="flex gap-2 flex-wrap">
+                {colors.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setNewModuleColor(color)}
+                    className={`w-8 h-8 rounded-full transition-all hover:scale-110 ${
+                      newModuleColor === color 
+                        ? 'ring-4 ring-white ring-offset-2 ring-offset-gray-800 scale-110' 
+                        : 'opacity-60 hover:opacity-100'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={createModule}
+                  className="flex-1 px-3 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-lg transition-all border border-green-500/30 hover:border-green-500/50 text-green-400 text-sm font-medium"
+                >
+                  Create
+                </button>
+                <button
+                  onClick={() => setIsCreating(false)}
+                  className="flex-1 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-all border border-red-500/30 hover:border-red-500/50 text-red-400 text-sm font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           <button

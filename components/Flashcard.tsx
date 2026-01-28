@@ -1,86 +1,97 @@
 'use client';
 
 import { useState } from 'react';
+import { Trash2, RotateCw } from 'lucide-react';
 
 interface FlashcardProps {
   id: string;
   word: string;
   translation: string;
   onDelete: (id: string) => void;
+  showOriginalFirst?: boolean;
 }
 
-export default function Flashcard({ id, word, translation, onDelete }: FlashcardProps) {
+export default function Flashcard({ id, word, translation, onDelete, showOriginalFirst = true }: FlashcardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
 
+  const frontText = showOriginalFirst ? word : translation;
+  const backText = showOriginalFirst ? translation : word;
+  const frontLabel = showOriginalFirst ? 'WORD' : 'TRANSLATION';
+  const backLabel = showOriginalFirst ? 'TRANSLATION' : 'WORD';
+
   return (
-    <div className="relative group">
+    <div className="perspective-1000 group">
       <div
-        className="relative h-48 md:h-56 cursor-pointer"
+        className={`relative w-full h-52 md:h-60 transition-all duration-500 cursor-pointer hover:scale-105`}
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+        }}
         onClick={() => setIsFlipped(!isFlipped)}
-        style={{ perspective: '1000px' }}
       >
-        <div
-          className={`absolute w-full h-full transition-all duration-500 transform-style-3d ${
-            isFlipped ? 'rotate-y-180' : ''
-          }`}
+        {/* Front */}
+        <div 
+          className="absolute inset-0 rounded-2xl p-6 md:p-8 border-2 border-cyan-400/30 flex flex-col items-center justify-center shadow-2xl overflow-hidden"
           style={{
-            transformStyle: 'preserve-3d',
-            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            background: 'linear-gradient(135deg, rgba(94, 179, 246, 0.1) 0%, rgba(139, 127, 246, 0.1) 100%)',
+            backdropFilter: 'blur(20px)',
+            backfaceVisibility: 'hidden',
           }}
         >
-          <div
-            className="absolute w-full h-full glass-effect rounded-2xl shadow-xl flex items-center justify-center p-4 md:p-8 backface-hidden border-2 border-white/20 hover:shadow-2xl transition-all hover:border-cyan-400/50"
-            style={{ backfaceVisibility: 'hidden' }}
-          >
-            <div className="text-center">
-              <div className="text-[10px] md:text-xs font-medium text-cyan-400 mb-1 md:mb-2 uppercase tracking-wide">
-                Word
-              </div>
-              <p 
-                className="text-2xl md:text-3xl font-bold text-center break-words"
-                style={{
-                  background: 'linear-gradient(135deg, #5eb3f6 0%, #8b7ff6 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                {word}
-              </p>
-            </div>
-          </div>
-
-          <div
-            className="absolute w-full h-full gradient-full rounded-2xl shadow-xl flex items-center justify-center p-4 md:p-8 backface-hidden hover:shadow-2xl transition-shadow"
+          <div 
+            className="absolute top-0 left-0 w-full h-full opacity-10"
             style={{
-              backfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)',
+              background: 'radial-gradient(circle at 20% 50%, rgba(127, 255, 212, 0.3) 0%, transparent 50%)',
             }}
-          >
-            <div className="text-center">
-              <div className="text-[10px] md:text-xs font-medium text-white/80 mb-1 md:mb-2 uppercase tracking-wide">
-                Translation
-              </div>
-              <p className="text-2xl md:text-3xl font-bold text-white text-center break-words">
-                {translation}
-              </p>
+          />
+          <div className="relative z-10 text-center">
+            <div className="text-xs md:text-sm text-cyan-400/60 mb-2 font-medium">{frontLabel}</div>
+            <p className="text-3xl md:text-4xl font-bold text-white mb-2">{frontText}</p>
+            <div className="flex items-center gap-2 text-cyan-400/40 text-xs">
+              <RotateCw className="w-3 h-3" />
+              <span>Click to flip</span>
             </div>
           </div>
         </div>
-      </div>
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          if (confirm('Delete this flashcard?')) {
+        {/* Back */}
+        <div 
+          className="absolute inset-0 rounded-2xl p-6 md:p-8 border-2 border-purple-400/30 flex flex-col items-center justify-center shadow-2xl overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, rgba(139, 127, 246, 0.1) 0%, rgba(255, 158, 216, 0.1) 100%)',
+            backdropFilter: 'blur(20px)',
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+          }}
+        >
+          <div 
+            className="absolute top-0 right-0 w-full h-full opacity-10"
+            style={{
+              background: 'radial-gradient(circle at 80% 50%, rgba(255, 158, 216, 0.3) 0%, transparent 50%)',
+            }}
+          />
+          <div className="relative z-10 text-center">
+            <div className="text-xs md:text-sm text-purple-400/60 mb-2 font-medium">{backLabel}</div>
+            <p className="text-3xl md:text-4xl font-bold text-white mb-2">{backText}</p>
+            <div className="flex items-center gap-2 text-purple-400/40 text-xs">
+              <RotateCw className="w-3 h-3" />
+              <span>Click to flip back</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Delete button - always visible on mobile, hover on desktop */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
             onDelete(id);
-          }
-        }}
-        className="absolute top-2 right-2 md:top-3 md:right-3 bg-red-500/80 hover:bg-red-600 backdrop-blur-sm text-white rounded-full w-7 h-7 md:w-9 md:h-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 shadow-lg hover:scale-110 font-bold text-base md:text-lg"
-        title="Delete flashcard"
-      >
-        ×
-      </button>
+          }}
+          className="absolute top-3 right-3 p-2.5 bg-red-500/20 hover:bg-red-500/40 rounded-xl transition-all z-10 md:opacity-0 md:group-hover:opacity-100 border border-red-500/30 hover:border-red-500/50 shadow-lg hover:scale-110"
+          title="Delete flashcard"
+        >
+          <Trash2 className="w-4 h-4 text-red-400" />
+        </button>
+      </div>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import FlashcardsTab from '@/components/FlashcardsTab';
 import QuizMode from '@/components/QuizMode';
 import StatsTab from '@/components/StatsTab';
 import ModuleSelector from '@/components/ModuleSelector';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { BookOpen, PenTool, TrendingUp } from 'lucide-react';
 
 interface Flashcard {
@@ -33,6 +34,8 @@ export default function Home() {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     if (user) {

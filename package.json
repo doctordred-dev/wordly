@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
+    "@upstash/redis": "^1.36.1",
     "fuzzball": "^2.2.3",
     "lucide-react": "^0.563.0",
     "next": "^16.1.6",
