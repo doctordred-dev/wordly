@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n';
-import { Trash2, RotateCw, Edit2, Check, X } from 'lucide-react';
+import { Trash2, RotateCw, Edit2, Check, X, Volume2, FileText } from 'lucide-react';
+import ExamplesModal from './ExamplesModal';
+import { getCachedAudio, cacheAudio } from '@/lib/audioCache';
 
 const langFlags: Record<string, string> = {
   en: '🇬🇧',
@@ -36,6 +38,8 @@ export default function Flashcard({ id, word, translation, onDelete, onEdit, sho
   const [isEditing, setIsEditing] = useState(false);
   const [editWord, setEditWord] = useState(word);
   const [editTranslation, setEditTranslation] = useState(translation);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isExamplesModalOpen, setIsExamplesModalOpen] = useState(false);
 
   // Sync edit state with props when they change (e.g., from Realtime updates)
   useEffect(() => {
@@ -54,6 +58,76 @@ export default function Flashcard({ id, word, translation, onDelete, onEdit, sho
     setEditWord(word);
     setEditTranslation(translation);
     setIsEditing(false);
+  };
+
+  const handlePlayAudio = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (isPlayingAudio) return;
+
+    setIsPlayingAudio(true);
+
+    try {
+      const textToSpeak = showOriginalFirst ? word : translation;
+
+      // Check cache first
+      let audioBlob = await getCachedAudio(textToSpeak);
+
+      if (!audioBlob) {
+        // If not cached, fetch from API
+        const response = await fetch('/api/tts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: textToSpeak }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate speech');
+        }
+
+        audioBlob = await response.blob();
+
+        // Cache the audio for future use
+        await cacheAudio(textToSpeak, audioBlob);
+      }
+
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+
+      // iOS requires user interaction for audio playback
+      // Setting preload helps with mobile devices
+      audio.preload = 'auto';
+
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      audio.onerror = () => {
+        setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      // For iOS Safari compatibility
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.error('Playback failed:', error);
+          setIsPlayingAudio(false);
+          URL.revokeObjectURL(audioUrl);
+        });
+      }
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      setIsPlayingAudio(false);
+    }
+  };
+
+  const handleShowExamples = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExamplesModalOpen(true);
   };
 
   const frontText = showOriginalFirst ? word : translation;
@@ -175,6 +249,21 @@ export default function Flashcard({ id, word, translation, onDelete, onEdit, sho
 
         {/* Action buttons - always visible on mobile, hover on desktop */}
         <div className="absolute top-3 right-3 flex gap-2 z-10 md:opacity-0 md:group-hover:opacity-100">
+          <button
+            onClick={handlePlayAudio}
+            disabled={isPlayingAudio}
+            className="p-2.5 bg-green-500/20 hover:bg-green-500/40 rounded-xl transition-all border border-green-500/30 hover:border-green-500/50 shadow-lg hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Play pronunciation"
+          >
+            <Volume2 className={`w-4 h-4 text-green-400 ${isPlayingAudio ? 'animate-pulse' : ''}`} />
+          </button>
+          <button
+            onClick={handleShowExamples}
+            className="p-2.5 bg-purple-500/20 hover:bg-purple-500/40 rounded-xl transition-all border border-purple-500/30 hover:border-purple-500/50 shadow-lg hover:scale-110"
+            title="Show examples"
+          >
+            <FileText className="w-4 h-4 text-purple-400" />
+          </button>
           {onEdit && (
             <button
               onClick={(e) => {
@@ -199,6 +288,12 @@ export default function Flashcard({ id, word, translation, onDelete, onEdit, sho
           </button>
         </div>
       </div>
+
+      <ExamplesModal
+        word={showOriginalFirst ? word : translation}
+        isOpen={isExamplesModalOpen}
+        onClose={() => setIsExamplesModalOpen(false)}
+      />
     </div>
   );
 }
