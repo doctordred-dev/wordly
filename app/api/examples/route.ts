@@ -4,8 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 // TODO: Create phrase_examples_cache table in Supabase using supabase_phrase_examples_cache.sql
 // Then uncomment the cache functions below
 
+// Languages supported by Free Dictionary API
+const FREE_DICT_LANGUAGES = ['en', 'ru', 'de', 'fr', 'es', 'it', 'pt', 'ja', 'ko'];
+
 // Check Supabase cache first
-async function getCachedExamples(phrase: string): Promise<string[] | null> {
+async function getCachedExamples(phrase: string, language: string = 'en'): Promise<string[] | null> {
   // Temporarily disabled until table is created
   return null;
 
@@ -26,7 +29,7 @@ async function getCachedExamples(phrase: string): Promise<string[] | null> {
 }
 
 // Save examples to Supabase cache
-async function cacheExamples(phrase: string, examples: string[], source: string): Promise<void> {
+async function cacheExamples(phrase: string, examples: string[], source: string, language: string = 'en'): Promise<void> {
   // Temporarily disabled until table is created
   return;
 
@@ -101,9 +104,23 @@ async function getStands4Examples(phrase: string): Promise<string[]> {
 }
 
 // Function to get examples from Free Dictionary API (for single words)
-async function getFreeDictionaryExamples(word: string): Promise<string[]> {
+async function getFreeDictionaryExamples(word: string, language: string = 'en'): Promise<string[]> {
   try {
-    const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
+    // Map language codes to Free Dictionary API format
+    const langMap: Record<string, string> = {
+      en: 'en',
+      ru: 'ru',
+      de: 'de',
+      fr: 'fr',
+      es: 'es',
+      it: 'it',
+      pt: 'pt-BR',
+      ja: 'ja',
+      ko: 'ko',
+    };
+
+    const apiLang = langMap[language] || 'en';
+    const url = `https://api.dictionaryapi.dev/api/v2/entries/${apiLang}/${encodeURIComponent(word)}`;
     const response = await fetch(url);
 
     if (!response.ok) return [];
@@ -166,6 +183,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     let word = searchParams.get('word');
+    const language = searchParams.get('language') || 'en';
 
     if (!word) {
       return NextResponse.json({ error: 'Word parameter is required' }, { status: 400 });
@@ -173,12 +191,28 @@ export async function GET(req: NextRequest) {
 
     const normalizedWord = word.trim().toLowerCase();
 
+    // Check if language is supported
+    const isLanguageSupported = FREE_DICT_LANGUAGES.includes(language);
+    const isEnglish = language === 'en';
+
+    // For unsupported languages, return message
+    if (!isLanguageSupported) {
+      return NextResponse.json({
+        word: normalizedWord,
+        originalQuery: word,
+        examples: [],
+        source: 'none',
+        message: `Examples are not available for this language (${language}). Supported languages: ${FREE_DICT_LANGUAGES.join(', ')}`
+      });
+    }
+
     // Check cache first
-    const cachedExamples = await getCachedExamples(normalizedWord);
+    const cachedExamples = await getCachedExamples(normalizedWord, language);
     if (cachedExamples && cachedExamples.length > 0) {
       return NextResponse.json({
         word: normalizedWord,
         originalQuery: word,
+        language,
         examples: cachedExamples.slice(0, 3),
         source: 'cache'
       });
@@ -186,28 +220,33 @@ export async function GET(req: NextRequest) {
 
     const isMultiWord = normalizedWord.includes(' ');
     let examples: string[] = [];
-    let source = 'fallback';
+    let source = 'none';
 
     if (isMultiWord) {
-      // For phrases: Try STANDS4 API first, then fallback to Wordnik
-      examples = await getStands4Examples(normalizedWord);
+      // For phrases: Only English supports STANDS4 and Wordnik
+      if (isEnglish) {
+        // Try STANDS4 API first, then fallback to Wordnik
+        examples = await getStands4Examples(normalizedWord);
 
-      if (examples.length > 0) {
-        source = 'stands4';
-      } else {
-        // Try Wordnik as fallback for phrases
-        examples = await getWordnikExamples(normalizedWord);
         if (examples.length > 0) {
-          source = 'wordnik';
+          source = 'stands4';
+        } else {
+          // Try Wordnik as fallback for phrases
+          examples = await getWordnikExamples(normalizedWord);
+          if (examples.length > 0) {
+            source = 'wordnik';
+          }
         }
       }
+      // For non-English phrases, no examples available (STANDS4 and Wordnik are English-only)
     } else {
-      // For single words: Free Dictionary -> Wordnik
-      examples = await getFreeDictionaryExamples(normalizedWord);
+      // For single words: Free Dictionary (supports multiple languages)
+      examples = await getFreeDictionaryExamples(normalizedWord, language);
 
       if (examples.length > 0) {
         source = 'free_dictionary';
-      } else {
+      } else if (isEnglish) {
+        // Wordnik fallback only for English
         examples = await getWordnikExamples(normalizedWord);
         if (examples.length > 0) {
           source = 'wordnik';
@@ -215,16 +254,18 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Cache the results for future use
+    // Cache the results for future use (only if found)
     if (examples.length > 0) {
-      await cacheExamples(normalizedWord, examples.slice(0, 3), source);
+      await cacheExamples(normalizedWord, examples.slice(0, 3), source, language);
     }
 
     return NextResponse.json({
       word: normalizedWord,
       originalQuery: word,
+      language,
       examples: examples.slice(0, 3),
-      source
+      source,
+      ...(examples.length === 0 && { message: `No examples found for this ${isMultiWord ? 'phrase' : 'word'}.` })
     });
   } catch (error) {
     console.error('Examples API error:', error);

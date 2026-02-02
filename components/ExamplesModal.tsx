@@ -8,9 +8,10 @@ interface ExamplesModalProps {
   word: string;
   isOpen: boolean;
   onClose: () => void;
+  language?: string;
 }
 
-export default function ExamplesModal({ word, isOpen, onClose }: ExamplesModalProps) {
+export default function ExamplesModal({ word, isOpen, onClose, language = 'en' }: ExamplesModalProps) {
   const [examples, setExamples] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,15 +25,18 @@ export default function ExamplesModal({ word, isOpen, onClose }: ExamplesModalPr
     if (isOpen && word) {
       fetchExamples();
     }
-  }, [isOpen, word]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, word, language]);
 
   const fetchExamples = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/examples?word=${encodeURIComponent(word)}`);
+      console.log('[ExamplesModal] Fetching examples for:', word, 'language:', language);
+      const response = await fetch(`/api/examples?word=${encodeURIComponent(word)}&language=${language}`);
       const data = await response.json();
+      console.log('[ExamplesModal] Response:', { status: response.status, data });
 
       if (response.ok) {
         // Ensure examples is an array
@@ -46,7 +50,7 @@ export default function ExamplesModal({ word, isOpen, onClose }: ExamplesModalPr
       }
     } catch (err) {
       setError('Failed to load examples');
-      console.error('Error fetching examples:', err);
+      console.error('[ExamplesModal] Error fetching examples:', err);
     } finally {
       setLoading(false);
     }

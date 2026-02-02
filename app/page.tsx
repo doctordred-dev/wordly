@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n';
-import { saveFlashcardsOffline, getFlashcardsOffline, isOnline } from '@/lib/offlineStorage';
+import { offlineStorage, isOnline } from '@/lib/offlineStorage';
 import Header from '@/components/Header';
 import LoginPage from '@/components/LoginPage';
 import TabNavigation from '@/components/TabNavigation';
@@ -88,12 +88,13 @@ export default function Home() {
     // Check if online
     if (!isOnline()) {
       // Load from offline storage
-      const offlineData = getFlashcardsOffline();
-      let filtered = offlineData.filter(f => f.user_id === user.id);
-      if (selectedModuleId) {
-        filtered = filtered.filter(f => f.module_id === selectedModuleId);
+      try {
+        const offlineData = await offlineStorage.getFlashcardsByModule(selectedModuleId, user.id);
+        setFlashcards(offlineData);
+      } catch (error) {
+        console.error('Error loading offline flashcards:', error);
+        setFlashcards([]);
       }
-      setFlashcards(filtered);
       setLoading(false);
       return;
     }
@@ -113,17 +114,32 @@ export default function Home() {
     if (error) {
       console.error('Error loading flashcards:', error);
       // Fallback to offline data on error
-      const offlineData = getFlashcardsOffline();
-      let filtered = offlineData.filter(f => f.user_id === user.id);
-      if (selectedModuleId) {
-        filtered = filtered.filter(f => f.module_id === selectedModuleId);
+      try {
+        const offlineData = await offlineStorage.getFlashcardsByModule(selectedModuleId, user.id);
+        setFlashcards(offlineData);
+      } catch (err) {
+        console.error('Error loading offline flashcards:', err);
+        setFlashcards([]);
       }
-      setFlashcards(filtered);
     } else if (data) {
-      setFlashcards(data);
-      // Save to offline storage (save all user's flashcards)
-      if (!selectedModuleId) {
-        saveFlashcardsOffline(data, user.id);
+      setFlashcards(data as any);
+      // Save to offline storage
+      try {
+        await offlineStorage.saveFlashcards((data as any[]).map((f: any) => ({
+          id: f.id,
+          word: f.word,
+          translation: f.translation,
+          module_id: f.module_id || null,
+          user_id: f.user_id || user.id,
+          source_lang: f.source_lang || 'en',
+          target_lang: f.target_lang || 'uk',
+          created_at: f.created_at || new Date().toISOString(),
+          updated_at: f.updated_at || new Date().toISOString(),
+          _synced: true,
+          _offline: false,
+        })));
+      } catch (err) {
+        console.error('Error saving flashcards offline:', err);
       }
     }
     setLoading(false);

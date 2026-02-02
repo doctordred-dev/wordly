@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n';
-import { saveModulesOffline, getModulesOffline, isOnline } from '@/lib/offlineStorage';
+import { offlineStorage, isOnline } from '@/lib/offlineStorage';
 import { FolderOpen, Plus, Edit2, Trash2, Check, X, Share2, Copy } from 'lucide-react';
 
 interface Module {
@@ -14,6 +14,8 @@ interface Module {
   description: string | null;
   color: string;
   flashcard_count?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface ModuleSelectorProps {
@@ -82,8 +84,13 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
 
     // Check if offline
     if (!isOnline()) {
-      const offlineModules = getModulesOffline();
-      setModules(offlineModules.filter(m => m.user_id === user.id));
+      try {
+        const offlineModules = await offlineStorage.getAllModules(user.id);
+        setModules(offlineModules);
+      } catch (error) {
+        console.error('Error loading offline modules:', error);
+        setModules([]);
+      }
       return;
     }
 
@@ -97,8 +104,13 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
     if (modulesError) {
       console.error('Error loading modules:', modulesError);
       // Fallback to offline data
-      const offlineModules = getModulesOffline();
-      setModules(offlineModules.filter(m => m.user_id === user.id));
+      try {
+        const offlineModules = await offlineStorage.getAllModules(user.id);
+        setModules(offlineModules);
+      } catch (error) {
+        console.error('Error loading offline modules:', error);
+        setModules([]);
+      }
       return;
     }
 
@@ -116,7 +128,16 @@ export default function ModuleSelector({ selectedModuleId, onModuleChange, showA
 
     setModules(modulesWithCounts);
     // Save to offline storage
-    saveModulesOffline(modulesWithCounts.map(m => ({ ...m, user_id: user.id })), user.id);
+    try {
+      await offlineStorage.saveModules(modulesWithCounts.map(m => ({
+        ...m,
+        user_id: user.id,
+        created_at: m.created_at || new Date().toISOString(),
+        updated_at: m.updated_at || new Date().toISOString(),
+      })));
+    } catch (error) {
+      console.error('Error saving modules offline:', error);
+    }
   };
 
   const createModule = async () => {

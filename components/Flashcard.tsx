@@ -69,6 +69,7 @@ export default function Flashcard({ id, word, translation, onDelete, onEdit, sho
 
     try {
       const textToSpeak = showOriginalFirst ? word : translation;
+      const languageToSpeak = showOriginalFirst ? sourceLang : targetLang;
 
       // Check cache first
       let audioBlob = await getCachedAudio(textToSpeak);
@@ -80,7 +81,10 @@ export default function Flashcard({ id, word, translation, onDelete, onEdit, sho
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ text: textToSpeak }),
+          body: JSON.stringify({
+            text: textToSpeak,
+            language: languageToSpeak
+          }),
         });
 
         if (!response.ok) {
@@ -96,29 +100,30 @@ export default function Flashcard({ id, word, translation, onDelete, onEdit, sho
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
 
-      // iOS requires user interaction for audio playback
-      // Setting preload helps with mobile devices
-      audio.preload = 'auto';
+      // iOS Safari compatibility - must load before play
+      audio.load();
 
       audio.onended = () => {
         setIsPlayingAudio(false);
         URL.revokeObjectURL(audioUrl);
       };
 
-      audio.onerror = () => {
+      audio.onerror = (err) => {
+        console.error('Audio error:', err);
         setIsPlayingAudio(false);
         URL.revokeObjectURL(audioUrl);
       };
 
-      // For iOS Safari compatibility
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
+      // Wait for audio to be ready, then play
+      audio.oncanplaythrough = async () => {
+        try {
+          await audio.play();
+        } catch (error) {
           console.error('Playback failed:', error);
           setIsPlayingAudio(false);
           URL.revokeObjectURL(audioUrl);
-        });
-      }
+        }
+      };
     } catch (error) {
       console.error('Error playing audio:', error);
       setIsPlayingAudio(false);
@@ -248,7 +253,7 @@ export default function Flashcard({ id, word, translation, onDelete, onEdit, sho
         </div>
 
         {/* Action buttons - always visible on mobile, hover on desktop */}
-        <div className="absolute top-3 right-3 flex gap-2 z-10 md:opacity-0 md:group-hover:opacity-100">
+        <div className="absolute top-2 right-2 flex gap-2 z-20 md:opacity-0 md:group-hover:opacity-100">
           <button
             onClick={handlePlayAudio}
             disabled={isPlayingAudio}
@@ -291,6 +296,7 @@ export default function Flashcard({ id, word, translation, onDelete, onEdit, sho
 
       <ExamplesModal
         word={showOriginalFirst ? word : translation}
+        language={showOriginalFirst ? sourceLang : targetLang}
         isOpen={isExamplesModalOpen}
         onClose={() => setIsExamplesModalOpen(false)}
       />
