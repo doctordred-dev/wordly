@@ -35,8 +35,10 @@ export default function ExamplesModal({ word, isOpen, onClose }: ExamplesModalPr
       const data = await response.json();
 
       if (response.ok) {
-        setExamples(data.examples);
-        if (data.examples.length === 0) {
+        // Ensure examples is an array
+        const examplesArray = Array.isArray(data.examples) ? data.examples : [];
+        setExamples(examplesArray);
+        if (examplesArray.length === 0) {
           setError('No examples found for this word');
         }
       } else {
