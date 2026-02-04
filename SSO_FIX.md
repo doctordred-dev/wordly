@@ -12,11 +12,13 @@ Wordly і Tiny Life Coach використовують одну Supabase баз�
 
 1. **Authentication → URL Configuration**
 2. **Site URL** встановіть: `https://wordly-gules.vercel.app`
-3. **Redirect URLs** додайте обидва:
+3. **Redirect URLs** додайте:
    ```
    https://wordly-gules.vercel.app/**
+   https://wordly-gules.vercel.app/auth/callback
    https://tini-life-coach.vercel.app/**
    http://localhost:3000/**
+   http://localhost:3000/auth/callback
    ```
 4. Натисніть **Save**
 
@@ -34,12 +36,26 @@ cd /Users/vladislav/Documents/mercury-lms
 npm run dev
 ```
 
-### 4. Протестувати SSO
+### 4. Повністю очистити браузер (ДУЖЕ ВАЖЛИВО!)
 
-1. Увійдіть в Mercury LMS як студент
+**Проблема**: Якщо ви вже залогінені в Wordly через Google, браузер використовує існуючу сесію.
+
+**Рішення**:
+1. **Варіант A** (рекомендую): Відкрийте LMS в **режимі інкогніто/приватному режимі**
+2. **Варіант B**: Повністю очистіть дані Wordly:
+   - Відкрийте https://wordly-gules.vercel.app
+   - DevTools (F12) → Application → Storage → Clear site data
+   - **Вийдіть з Google акаунту** якщо залогінені
+   - Закрийте всі вкладки Wordly
+
+### 5. Протестувати SSO
+
+1. Увійдіть в Mercury LMS як студент (в режимі інкогніто якщо використовуєте Варіант A)
 2. Перейдіть на "Вивчення слів"
-3. Перевірте що відкривається **Wordly**, а не Tiny Life Coach
-4. Перевірте що ви автоматично залогінені
+3. Ви побачите:
+   - Спочатку "Authenticating from Mercury LMS..."
+   - Потім автоматично відкриється Wordly головна сторінка
+4. **Перевірте email**: повинен бути ваш email від LMS, не Google email
 
 ## Як це працює тепер
 

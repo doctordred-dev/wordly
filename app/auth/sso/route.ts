@@ -102,8 +102,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/?error=token_generation_failed', request.url))
     }
 
-    // Редиректимо на Wordly з токенами в хеші (безпечніше)
-    const redirectUrl = new URL(wordlyAppUrl)
+    // Редиректимо на callback сторінку Wordly з токенами в хеші
+    const redirectUrl = new URL(`${wordlyAppUrl}/auth/callback`)
     redirectUrl.hash = `access_token=${accessToken}&refresh_token=${refreshToken}&type=magiclink`
 
     return NextResponse.redirect(redirectUrl.toString())
