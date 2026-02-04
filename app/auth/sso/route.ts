@@ -63,6 +63,7 @@ export async function GET(request: NextRequest) {
         email_confirm: true, // Автоматично підтверджуємо email
         user_metadata: {
           source: 'mercury-lms-sso',
+          app_type: 'wordly', // Вказуємо що це користувач Wordly
         },
       })
 
@@ -72,19 +73,40 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Генеруємо magic link для автоматичного входу
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+    // ВАЖЛИВО: Замість magic link створюємо session token напряму
+    // Це потрібно щоб уникнути конфлікту між Wordly та Tiny Life Coach
+    const wordlyAppUrl =
+      process.env.NEXT_PUBLIC_WORDLY_APP_URL || 'https://wordly-gules.vercel.app'
+
+    // Створюємо OTP token для автоматичного входу
+    const { data: otpData, error: otpError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'magiclink',
       email,
+      options: {
+        redirectTo: wordlyAppUrl,
+      },
     })
 
-    if (linkError || !linkData) {
-      console.error('Error generating magic link:', linkError)
+    if (otpError || !otpData) {
+      console.error('Error generating OTP:', otpError)
       return NextResponse.redirect(new URL('/?error=link_generation_failed', request.url))
     }
 
-    // Редиректимо на magic link URL який автоматично залогінить користувача
-    return NextResponse.redirect(linkData.properties.action_link)
+    // Витягуємо параметри з action_link
+    const actionLink = new URL(otpData.properties.action_link)
+    const accessToken = actionLink.searchParams.get('access_token')
+    const refreshToken = actionLink.searchParams.get('refresh_token')
+
+    if (!accessToken || !refreshToken) {
+      console.error('No tokens in action link')
+      return NextResponse.redirect(new URL('/?error=token_generation_failed', request.url))
+    }
+
+    // Редиректимо на Wordly з токенами в хеші (безпечніше)
+    const redirectUrl = new URL(wordlyAppUrl)
+    redirectUrl.hash = `access_token=${accessToken}&refresh_token=${refreshToken}&type=magiclink`
+
+    return NextResponse.redirect(redirectUrl.toString())
   } catch (error) {
     console.error('SSO error:', error)
     return NextResponse.redirect(new URL('/?error=server_error', request.url))
