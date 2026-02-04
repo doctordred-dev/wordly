@@ -11,26 +11,52 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Отримуємо токени з URL hash
-        const hashParams = new URLSearchParams(window.location.hash.substring(1))
-        const accessToken = hashParams.get('access_token')
-        const refreshToken = hashParams.get('refresh_token')
+        // Перевіряємо чи є credentials в URL params (новий підхід)
+        const searchParams = new URLSearchParams(window.location.search)
+        const credentials = searchParams.get('credentials')
 
-        if (!accessToken || !refreshToken) {
-          throw new Error('Missing tokens in URL')
+        if (credentials) {
+          // Декодуємо credentials
+          const decoded = atob(credentials)
+          const [email, password] = decoded.split(':')
+
+          if (!email || !password) {
+            throw new Error('Invalid credentials format')
+          }
+
+          // Логінимося з email та паролем
+          const { data, error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          })
+
+          if (signInError) {
+            throw signInError
+          }
+
+          console.log('SSO Login successful:', data.user?.email)
+        } else {
+          // Fallback: спробуємо отримати токени з hash (старий підхід)
+          const hashParams = new URLSearchParams(window.location.hash.substring(1))
+          const accessToken = hashParams.get('access_token')
+          const refreshToken = hashParams.get('refresh_token')
+
+          if (!accessToken || !refreshToken) {
+            throw new Error('Missing authentication data in URL')
+          }
+
+          // Встановлюємо сесію з токенами
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+
+          if (sessionError) {
+            throw sessionError
+          }
+
+          console.log('SSO Session set successfully:', data.user?.email)
         }
-
-        // Встановлюємо сесію з отриманими токенами
-        const { data, error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        })
-
-        if (sessionError) {
-          throw sessionError
-        }
-
-        console.log('SSO Session set successfully:', data.user?.email)
 
         // Редиректимо на головну сторінку
         router.push('/')

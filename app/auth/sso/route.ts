@@ -73,38 +73,46 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ВАЖЛИВО: Замість magic link створюємо session token напряму
-    // Це потрібно щоб уникнути конфлікту між Wordly та Tiny Life Coach
+    // ВАЖЛИВО: Генеруємо пароль та створюємо/оновлюємо користувача
+    // Це дозволяє уникнути magic link який може редиректити через Google
     const wordlyAppUrl =
       process.env.NEXT_PUBLIC_WORDLY_APP_URL || 'https://wordly-gules.vercel.app'
 
-    // Створюємо OTP token для автоматичного входу
-    const { data: otpData, error: otpError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email,
-      options: {
-        redirectTo: wordlyAppUrl,
-      },
-    })
+    // Генеруємо безпечний пароль для користувача
+    const password = `sso-${Math.random().toString(36).slice(2)}-${Date.now()}`
 
-    if (otpError || !otpData) {
-      console.error('Error generating OTP:', otpError)
-      return NextResponse.redirect(new URL('/?error=link_generation_failed', request.url))
+    let userId: string
+
+    if (!user) {
+      // Створюємо нового користувача з паролем
+      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          source: 'mercury-lms-sso',
+          app_type: 'wordly',
+        },
+      })
+
+      if (createError || !newUser.user) {
+        console.error('Error creating user with password:', createError)
+        return NextResponse.redirect(new URL('/?error=user_creation_failed', request.url))
+      }
+
+      userId = newUser.user.id
+    } else {
+      // Оновлюємо пароль для існуючого користувача
+      userId = user.id
+      await supabaseAdmin.auth.admin.updateUserById(userId, { password })
     }
 
-    // Витягуємо параметри з action_link
-    const actionLink = new URL(otpData.properties.action_link)
-    const accessToken = actionLink.searchParams.get('access_token')
-    const refreshToken = actionLink.searchParams.get('refresh_token')
+    // Кодуємо credentials в base64 для передачі через URL
+    const credentials = Buffer.from(`${email}:${password}`).toString('base64')
 
-    if (!accessToken || !refreshToken) {
-      console.error('No tokens in action link')
-      return NextResponse.redirect(new URL('/?error=token_generation_failed', request.url))
-    }
-
-    // Редиректимо на callback сторінку Wordly з токенами в хеші
+    // Редиректимо на callback з credentials
     const redirectUrl = new URL(`${wordlyAppUrl}/auth/callback`)
-    redirectUrl.hash = `access_token=${accessToken}&refresh_token=${refreshToken}&type=magiclink`
+    redirectUrl.searchParams.set('credentials', credentials)
 
     return NextResponse.redirect(redirectUrl.toString())
   } catch (error) {
